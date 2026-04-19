@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of milestone tests, golden files, five-layer pipeline cases, security tests, fuzz smoke, parser shadow gates, and test documentation.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-19
 
 ## Mission
 
@@ -66,7 +66,7 @@ python3 scripts/docs-audit.py
 
 `checkpoint-health.sh` is allowed to reconfigure the requested build dir and fall back from `build/` to `build-codex/`; maintenance changes to that recovery path must preserve a clean build-dir handoff instead of leaking configure logs into later commands.
 同一脚本在 normal leg 里必须显式构建 `styio_security_test` 后再跑 `ctest -L security`；空标签返回 0 不能算通过。
-离线恢复时，`tests/CMakeLists.txt` 和顶层 `CMakeLists.txt` 现在会优先复用本地已有的 `googletest` / `tree_sitter_runtime` source checkout，避免首次恢复因 FetchContent 远端不可达而卡死。
+离线恢复时，顶层 `CMakeLists.txt` 通过共享的 `cmake/StyioGoogleTest.cmake` 与 `cmake/StyioTreeSitter.cmake` 优先复用本地已有的 `googletest` / `tree_sitter_runtime` source checkout，避免首次恢复因 FetchContent 远端不可达而卡死。
 
 ## Cross-Team Dependencies
 

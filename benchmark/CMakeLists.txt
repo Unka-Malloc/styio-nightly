@@ -1,3 +1,5 @@
+include(GoogleTest)
+
 add_executable(styio_soak_test
   styio_soak_test.cpp
 )
@@ -9,8 +11,6 @@ target_compile_definitions(styio_soak_test PRIVATE
   "STYIO_COMPILER_EXE=\"$<TARGET_FILE:styio>\""
 )
 add_dependencies(styio_soak_test styio)
-
-include(GoogleTest)
 gtest_discover_tests(styio_soak_test
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   PROPERTIES LABELS "benchmark\\;soak\\;soak_smoke\\;single_thread"

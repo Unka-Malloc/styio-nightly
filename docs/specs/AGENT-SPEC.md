@@ -603,9 +603,9 @@ TEST(Lexer, WaveOperatorTokenization) {
 
 ### 11.1 CMake
 
-The project uses a single top-level `CMakeLists.txt`. Source files are **explicitly listed** (no GLOB).
+The build is orchestrated by the top-level `CMakeLists.txt`, which delegates compiler target definitions to `src/CMakeLists.txt` and shared dependency setup to `cmake/*.cmake`. Source files are **explicitly listed** in `src/cmake/*.cmake` (no GLOB).
 
-**When adding a new `.cpp` file**, you MUST add it to the `add_executable(styio ...)` list in `CMakeLists.txt`.
+**When adding a new `.cpp` file**, you MUST add it to the owning explicit source list under `src/cmake/` (or the closest existing list if that module has not been split yet).
 
 ### 11.2 Dependencies
 
@@ -615,14 +615,14 @@ The project uses a single top-level `CMakeLists.txt`. Source files are **explici
 |------------|---------|---------|
 | LLVM | 18.1.0+ (CMake) | IR generation, JIT, native target |
 | ICU | System + `FindICU.cmake` | Unicode (`uc`, `i18n`) |
-| GoogleTest | FetchContent zip in `tests/CMakeLists.txt` | Tests only (`styio_test`) |
+| GoogleTest | FetchContent zip in `cmake/StyioGoogleTest.cmake` | Tests and benchmark targets only |
 | cxxopts | Vendored `src/include/cxxopts.hpp` | CLI argument parsing |
 
 ### 11.3 Known Issues
 
-1. **`Util.cpp` missing:** `CMakeLists.txt` references `src/StyioUtil/Util.cpp` but the file doesn't exist. Either create it or remove the reference.
-2. **Hardcoded compiler paths:** `CMakeLists.txt` sets `CMAKE_C_COMPILER` etc. to `/usr/bin/clang`. On Windows/macOS, these must be overridden or removed.
-3. **Include paths:** `main.cpp` uses paths like `"StyioAST/AST.hpp"` expecting `src/` on the include path, but this isn't explicitly configured in CMake. The build may rely on the IDE or build directory structure.
+1. **Build layering is transitional:** target names stay stable, but source ownership now lives in `src/cmake/*.cmake`; keep those files synchronized with the real module boundaries.
+2. **External toolchain is still host-provided:** LLVM 18.1.0 and optional ICU remain environment prerequisites rather than vendored dependencies.
+3. **Tree-sitter grammar is generated input:** if `grammar/tree-sitter-styio/src/parser.c` is missing, regenerate it or configure with `-DSTYIO_ENABLE_TREE_SITTER=OFF`.
 
 ---
 
