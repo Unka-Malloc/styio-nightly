@@ -31,6 +31,7 @@ Build and test targets:
 4. Preserve recovery behavior: malformed statements should not unnecessarily erase later useful IDE facts.
 5. Keep `docs/for-ide/BUILD.md` scoped to IDE/LSP targets; repository-wide bootstrap and common compiler commands belong in [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
 6. Update `docs/for-ide/` when public host behavior changes.
+7. When IDE build docs mention compiler prerequisites, reflect the shared repository baseline instead of creating a second LLVM/CMake/Python version matrix under `docs/for-ide/`.
 
 ## Change Classes
 

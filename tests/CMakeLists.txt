@@ -290,17 +290,17 @@ add_executable(styio_security_test
   security/styio_security_test.cpp
 )
 target_link_libraries(styio_security_test PRIVATE styio_core GTest::gtest_main)
-# Keep LLVM headers off all tests by default; only security test needs AST/session headers.
-target_include_directories(styio_security_test SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})
-target_compile_definitions(styio_security_test PRIVATE ${LLVM_DEFINITIONS_LIST})
+# Security tests transitively include codegen/session headers that reference
+# LLVM types. Use the shared helper so LLVM headers stay behind the standard
+# library on Debian/libstdc++.
+styio_apply_llvm_compile_settings(styio_security_test)
 
 add_executable(styio_ide_test
   ide/styio_ide_test.cpp
   "${CMAKE_SOURCE_DIR}/src/StyioLSP/Server.cpp"
 )
 target_link_libraries(styio_ide_test PRIVATE styio_ide_core GTest::gtest_main ${LLVM_LIBS})
-target_include_directories(styio_ide_test SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})
-target_compile_definitions(styio_ide_test PRIVATE ${LLVM_DEFINITIONS_LIST})
+styio_apply_llvm_compile_settings(styio_ide_test)
 if(STYIO_ENABLE_TREE_SITTER)
   target_compile_definitions(styio_ide_test PRIVATE STYIO_HAS_TREE_SITTER)
 endif()

@@ -77,7 +77,7 @@ tests/pipeline_cases/<case_name>/
 ## 4. 构建与 CMake 要点
 
 - **`styio_core` 静态库**：编译器实现集中于库；`styio` 可执行文件仅链接 `main.cpp` + `styio_core`。
-- **LLVM 头文件不得污染 GoogleTest**：`LLVM_INCLUDE_DIRS` / 相关宏仅绑定 **`styio_core`** 与 **`styio`** 目标（`SYSTEM PRIVATE`），否则 `gtest` 会与 `libc++abi` 头冲突。
+- **LLVM 头文件不得污染 GoogleTest**：LLVM compile settings 统一经 `styio_apply_llvm_compile_settings(...)` helper 注入；在 Clang/GNU 上必须以 **`-idirafter`** 形式落在标准库头之后，而不是继续给测试/benchmark 目标手写 `SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS}`，否则 `gtest` 会与 LLVM 自带的 `libc++abi` 头冲突。
 - **L5 依赖：** `styio_test` 通过 `add_dependencies(styio_test styio)` 确保先有 `styio` 可执行文件；运行器路径由宏 **`STYIO_COMPILER_EXE`**（或环境变量同名）指定。
 - **Parser 路由：** `PipelineCheck.cpp` 的 L2 parser 当前固定走 `parse_main_block_with_engine_latest(..., StyioParserEngine::Nightly, ...)`，用于让 five-layer golden 直接约束默认 parser 路径。
 

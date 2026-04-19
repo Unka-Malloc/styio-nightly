@@ -4,8 +4,7 @@ add_executable(styio_soak_test
   styio_soak_test.cpp
 )
 target_link_libraries(styio_soak_test PRIVATE styio_core GTest::gtest_main)
-target_include_directories(styio_soak_test SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})
-target_compile_definitions(styio_soak_test PRIVATE ${LLVM_DEFINITIONS_LIST})
+styio_apply_llvm_compile_settings(styio_soak_test)
 target_compile_definitions(styio_soak_test PRIVATE
   "STYIO_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}\""
   "STYIO_COMPILER_EXE=\"$<TARGET_FILE:styio>\""

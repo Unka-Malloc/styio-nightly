@@ -34,6 +34,7 @@ Related docs:
 6. Preserve the current partial `[|n|]` bounded-ring contract until an explicit M8/Topology checkpoint changes it: final-bind lowers to `[n x i64] + head`, reads return the latest slot, same-name flex after final bind is rejected, and function-parameter ring semantics remain incomplete.
 7. Treat `runtime-events.jsonl` as a published artifact: changes to `compile.* / run.* / thread.* / unit.* / unit.test.* / state.* / transition.fired / log.emitted / diagnostic.emitted` require same-checkpoint tests and consumer doc updates.
 8. Keep `stdout/stderr` helper hooks lossless: runtime log replay may enrich the artifact stream, but must not change observable program output semantics.
+9. When `StyioJIT_ORC` needs runtime helpers, register them explicitly through `absoluteSymbols`; do not rely on host-binary export behavior or `DynamicLibrarySearchGenerator` alone, because test and tool binaries may not expose `ExternLib` symbols in their dynamic symbol table.
 
 ## Change Classes
 

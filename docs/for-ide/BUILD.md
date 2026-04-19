@@ -14,8 +14,8 @@
 
 For repository-level bootstrap, common compiler commands, and docs tooling, start with [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
 
-1. LLVM `18.1.0` discoverable by `find_package(LLVM ...)`.
-2. A C++20 compiler and CMake `>= 3.14`.
+1. LLVM `18.1.x` discoverable by `find_package(LLVM ...)`; `18.1.0` is the compatibility floor and `18.1.x` is the standardized line.
+2. A C++20 compiler and CMake / CTest `3.31.6` on the standardized toolchain; repository compatibility floor is CMake `3.20`.
 3. Node.js only when regenerating the Tree-sitter grammar.
 
 For a fresh Debian/Ubuntu container or VM, bootstrap the toolchain first:

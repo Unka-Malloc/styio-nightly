@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of the `styio` CLI, diagnostics surface, `styio-nano` profile pruning, and nano package bootstrap contracts.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-19
 
 ## Mission
 
@@ -31,6 +31,7 @@ Key handoff document:
 5. Keep package-manager responsibilities out of the compiler unless they are bootstrap validation.
 6. When compile-plan or diagnostics behavior changes, keep the `styio-spio` / `styio-view` coordinator mirror and handoff docs aligned in the same checkpoint.
 7. When runtime event artifacts change, keep `supported_contracts.runtime_events`, `feature_flags.runtime_event_stream`, `receipt.json`, and `build_root/runtime-events.jsonl` aligned in the same checkpoint.
+8. Keep generated nano subset build manifests aligned with the repository compatibility floor and the shared `styio-nightly` / `styio-spio` toolchain baseline when `src/main.cpp` emits CMake scaffolding.
 
 ## Change Classes
 

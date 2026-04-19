@@ -1962,7 +1962,7 @@ styio_write_nano_package_cmakelists_latest(
   }
 
   std::ostringstream cmake;
-  cmake << "cmake_minimum_required(VERSION 3.14)\n";
+  cmake << "cmake_minimum_required(VERSION 3.20)\n";
   cmake << "project(styio_nano_subset VERSION " << STYIO_PROJECT_VERSION << ")\n\n";
   cmake << "set(CMAKE_CXX_STANDARD 20)\n";
   cmake << "set(CMAKE_CXX_STANDARD_REQUIRED ON)\n";
@@ -1995,7 +1995,9 @@ styio_write_nano_package_cmakelists_latest(
   cmake << "add_executable(styio_nano ${STYIO_NANO_CPP_SOURCES})\n";
   cmake << "set_target_properties(styio_nano PROPERTIES OUTPUT_NAME \"" << styio_nano_binary_filename_latest() << "\")\n";
   cmake << "target_include_directories(styio_nano PUBLIC \"${CMAKE_SOURCE_DIR}/src\")\n";
-  cmake << "target_include_directories(styio_nano SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS})\n";
+  cmake << "foreach(_llvm_include_dir IN LISTS LLVM_INCLUDE_DIRS)\n";
+  cmake << "  target_compile_options(styio_nano PRIVATE \"SHELL:-idirafter ${_llvm_include_dir}\")\n";
+  cmake << "endforeach()\n";
   cmake << "target_compile_definitions(styio_nano PRIVATE ${LLVM_DEFINITIONS_LIST} ${STYIO_NANO_COMPILE_DEFINITIONS} ";
   cmake << "\"STYIO_PROJECT_VERSION=\\\"" << STYIO_PROJECT_VERSION << "\\\"\" ";
   cmake << "\"STYIO_RELEASE_CHANNEL=\\\"nano\\\"\" ";

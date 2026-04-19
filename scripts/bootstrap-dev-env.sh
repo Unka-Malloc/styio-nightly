@@ -3,6 +3,11 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TOOL_VENV="${STYIO_NIGHTLY_TOOL_VENV:-$HOME/.local/venvs/styio-nightly-tools}"
+DEBIAN_STANDARD_VERSION="${STYIO_TOOLCHAIN_DEBIAN_STANDARD_VERSION:-13}"
+LLVM_STANDARD_SERIES="${STYIO_TOOLCHAIN_LLVM_STANDARD_SERIES:-18.1.x}"
+CMAKE_STANDARD_VERSION="${STYIO_TOOLCHAIN_CMAKE_STANDARD_VERSION:-3.31.6}"
+PYTHON_STANDARD_VERSION="${STYIO_TOOLCHAIN_PYTHON_STANDARD_VERSION:-3.13.5}"
+LIT_STANDARD_VERSION="${STYIO_TOOLCHAIN_LIT_STANDARD_VERSION:-18.1.8}"
 
 usage() {
   cat <<EOF
@@ -14,6 +19,12 @@ styio-nightly on a fresh Linux container or VM.
 Optional environment:
   STYIO_NIGHTLY_TOOL_VENV   Python virtualenv used for lit
                             Default: $TOOL_VENV
+
+Standardized baseline shared with styio-spio:
+  Debian                  $DEBIAN_STANDARD_VERSION (trixie)
+  LLVM / Clang / LLD      $LLVM_STANDARD_SERIES via clang-18 toolchain packages
+  CMake / CTest           $CMAKE_STANDARD_VERSION (installed into the tool venv)
+  Python                  $PYTHON_STANDARD_VERSION
 EOF
 }
 
@@ -54,6 +65,17 @@ ensure_debian_like() {
   fi
 }
 
+report_standard_baseline() {
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  if [[ "${ID:-}" == "debian" && "${VERSION_ID:-}" == "$DEBIAN_STANDARD_VERSION" ]]; then
+    log "host matches the standardized dev baseline: Debian $DEBIAN_STANDARD_VERSION"
+    return
+  fi
+
+  log "host is ${PRETTY_NAME:-unknown}; standardized dev baseline is Debian $DEBIAN_STANDARD_VERSION (trixie). Continuing with the compatible Debian/Ubuntu bootstrap path."
+}
+
 install_system_packages() {
   local packages=(
     build-essential
@@ -91,16 +113,24 @@ install_system_packages() {
 }
 
 install_lit() {
-  log "installing lit into $TOOL_VENV"
+  log "installing standardized CMake/CTest and lit into $TOOL_VENV"
   python3 -m venv "$TOOL_VENV"
   "$TOOL_VENV/bin/python" -m pip install --upgrade pip
-  "$TOOL_VENV/bin/python" -m pip install "lit==18.1.8"
+  "$TOOL_VENV/bin/python" -m pip install \
+    "cmake==$CMAKE_STANDARD_VERSION" \
+    "lit==$LIT_STANDARD_VERSION"
 }
 
 print_summary() {
   cat <<EOF
 
 styio-nightly bootstrap complete.
+
+Standardized baseline:
+  Debian:        $DEBIAN_STANDARD_VERSION (trixie)
+  LLVM series:   $LLVM_STANDARD_SERIES
+  CMake/CTest:   $CMAKE_STANDARD_VERSION
+  Python:        $PYTHON_STANDARD_VERSION
 
 Suggested shell exports:
   export CC=/usr/bin/clang-18
@@ -121,6 +151,7 @@ main() {
   fi
 
   ensure_debian_like
+  report_standard_baseline
   install_system_packages
   install_lit
   print_summary

@@ -60,6 +60,8 @@ ctest --test-dir build -L soak_deep
 ./benchmark/soak-minimize.sh --help
 ```
 
+`styio_soak_test` 若需要包含 LLVM 支持库头，必须通过共享的 `styio_apply_llvm_compile_settings(...)` helper 注入 LLVM include path，使其以 `-idirafter` 形式落在标准库头之后；不要直接给 benchmark 目标加 `SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS}`，否则 Debian + libstdc++ 会命中错误的 `cxxabi.h`。
+
 ## Cross-Team Dependencies
 
 1. Codegen / Runtime must review runtime loop, allocation, handle, and LLVM hotspot findings.
