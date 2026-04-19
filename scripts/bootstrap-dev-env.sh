@@ -6,8 +6,10 @@ TOOL_VENV="${STYIO_NIGHTLY_TOOL_VENV:-$HOME/.local/venvs/styio-nightly-tools}"
 DEBIAN_STANDARD_VERSION="${STYIO_TOOLCHAIN_DEBIAN_STANDARD_VERSION:-13}"
 LLVM_STANDARD_SERIES="${STYIO_TOOLCHAIN_LLVM_STANDARD_SERIES:-18.1.x}"
 CMAKE_STANDARD_VERSION="${STYIO_TOOLCHAIN_CMAKE_STANDARD_VERSION:-3.31.6}"
-PYTHON_STANDARD_VERSION="${STYIO_TOOLCHAIN_PYTHON_STANDARD_VERSION:-3.13.5}"
+PYTHON_STANDARD_VERSION="${STYIO_TOOLCHAIN_PYTHON_STANDARD_VERSION:-$(tr -d '[:space:]' < "$ROOT/.python-version")}"
+NODE_STANDARD_VERSION="${STYIO_TOOLCHAIN_NODE_STANDARD_VERSION:-$(tr -d '[:space:]' < "$ROOT/.nvmrc")}"
 LIT_STANDARD_VERSION="${STYIO_TOOLCHAIN_LIT_STANDARD_VERSION:-18.1.8}"
+NODE_INSTALL_ROOT="${STYIO_NIGHTLY_NODE_INSTALL_ROOT:-/usr/local/lib/nodejs}"
 
 usage() {
   cat <<EOF
@@ -25,6 +27,7 @@ Standardized baseline shared with styio-spio:
   LLVM / Clang / LLD      $LLVM_STANDARD_SERIES via clang-18 toolchain packages
   CMake / CTest           $CMAKE_STANDARD_VERSION (installed into the tool venv)
   Python                  $PYTHON_STANDARD_VERSION
+  Node.js                 v$NODE_STANDARD_VERSION (official LTS tarball)
 EOF
 }
 
@@ -95,8 +98,6 @@ install_system_packages() {
     llvm-18-dev
     llvm-18-tools
     ninja-build
-    nodejs
-    npm
     pkg-config
     python3
     python3-pip
@@ -110,6 +111,48 @@ install_system_packages() {
   log "installing system packages"
   as_root apt-get update
   as_root env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${packages[@]}"
+}
+
+node_arch() {
+  case "$(uname -m)" in
+    x86_64|amd64)
+      echo "x64"
+      ;;
+    aarch64|arm64)
+      echo "arm64"
+      ;;
+    *)
+      fail "unsupported architecture for official Node.js binaries: $(uname -m)"
+      ;;
+  esac
+}
+
+install_node() {
+  local arch version archive url workdir
+
+  if command -v node >/dev/null 2>&1; then
+    version="$(node --version 2>/dev/null || true)"
+    if [[ "$version" == "v$NODE_STANDARD_VERSION" ]]; then
+      log "Node.js already matches standardized version $version"
+      return
+    fi
+  fi
+
+  arch="$(node_arch)"
+  archive="node-v${NODE_STANDARD_VERSION}-linux-${arch}.tar.xz"
+  url="https://nodejs.org/dist/v${NODE_STANDARD_VERSION}/${archive}"
+  workdir="$(mktemp -d)"
+  trap 'rm -rf "$workdir"' RETURN
+
+  log "installing official Node.js v$NODE_STANDARD_VERSION into $NODE_INSTALL_ROOT"
+  wget -qO "$workdir/$archive" "$url"
+  as_root mkdir -p "$NODE_INSTALL_ROOT"
+  as_root rm -rf "$NODE_INSTALL_ROOT/node-v${NODE_STANDARD_VERSION}-linux-${arch}"
+  as_root tar -xJf "$workdir/$archive" -C "$NODE_INSTALL_ROOT"
+  as_root ln -sf "$NODE_INSTALL_ROOT/node-v${NODE_STANDARD_VERSION}-linux-${arch}/bin/node" /usr/local/bin/node
+  as_root ln -sf "$NODE_INSTALL_ROOT/node-v${NODE_STANDARD_VERSION}-linux-${arch}/bin/npm" /usr/local/bin/npm
+  as_root ln -sf "$NODE_INSTALL_ROOT/node-v${NODE_STANDARD_VERSION}-linux-${arch}/bin/npx" /usr/local/bin/npx
+  as_root ln -sf "$NODE_INSTALL_ROOT/node-v${NODE_STANDARD_VERSION}-linux-${arch}/bin/corepack" /usr/local/bin/corepack
 }
 
 install_lit() {
@@ -131,6 +174,7 @@ Standardized baseline:
   LLVM series:   $LLVM_STANDARD_SERIES
   CMake/CTest:   $CMAKE_STANDARD_VERSION
   Python:        $PYTHON_STANDARD_VERSION
+  Node.js:       v$NODE_STANDARD_VERSION
 
 Suggested shell exports:
   export CC=/usr/bin/clang-18
@@ -153,6 +197,7 @@ main() {
   ensure_debian_like
   report_standard_baseline
   install_system_packages
+  install_node
   install_lit
   print_summary
 }

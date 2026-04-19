@@ -32,6 +32,7 @@ Build and test targets:
 5. Keep `docs/for-ide/BUILD.md` scoped to IDE/LSP targets; repository-wide bootstrap and common compiler commands belong in [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
 6. Update `docs/for-ide/` when public host behavior changes.
 7. When IDE build docs mention compiler prerequisites, reflect the shared repository baseline instead of creating a second LLVM/CMake/Python version matrix under `docs/for-ide/`.
+8. Tree-sitter maintenance instructions in `docs/for-ide/BUILD.md` must keep using the repository-standard Node.js `v24.15.0` LTS line instead of a floating `stable` or distro-default Node release.
 
 ## Change Classes
 

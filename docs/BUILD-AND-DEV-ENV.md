@@ -18,7 +18,7 @@ On a fresh Debian/Ubuntu host, start from the repository root:
 ./scripts/bootstrap-dev-env.sh
 ```
 
-That script installs the common native toolchain used by this repository, including `clang-18`, `lld-18`, `llvm-18-dev`, `cmake`, `ninja`, `python3`, `node`, and a local `lit` venv for test tooling.
+That script installs the common native toolchain used by this repository, including `clang-18`, `lld-18`, `llvm-18-dev`, `cmake`, `ninja`, `python3`, the official Node.js `v24.15.0` LTS binary line, and a local `lit` venv for test tooling.
 
 ## Standardized Baseline
 
@@ -28,15 +28,16 @@ That script installs the common native toolchain used by this repository, includ
 2. Compiler toolchain standard: LLVM / Clang / LLD `18.1.x` via the `clang-18` package line.
 3. CMake / CTest standard: `3.31.6`.
 4. Validation Python standard: `3.13.5`.
-5. Repository compatibility floor: CMake `3.20+` and C++20.
-6. CI mirror: GitHub Actions on `ubuntu-24.04`, plus Python `3.13.5` and `cmake==3.31.6` installed before validation steps.
+5. Node.js standard for grammar maintenance: `v24.15.0` LTS.
+6. Repository compatibility floor: CMake `3.20+` and C++20.
+7. CI mirror: GitHub Actions on `ubuntu-24.04`, plus Python `3.13.5` and `cmake==3.31.6` installed before validation steps.
 
 ## Required Toolchains
 
 1. LLVM `18.1.x` discoverable by `find_package(LLVM ...)`; `18.1.0` remains the compatibility floor accepted by CMake discovery.
 2. A C++20 compiler and CMake / CTest `3.31.6` for the standardized local and CI toolchain.
 3. Python `3.13.5` for docs and lifecycle scripts in the standardized validation pipeline.
-4. Node.js only when regenerating the Tree-sitter grammar.
+4. Node.js `v24.15.0` LTS when regenerating the Tree-sitter grammar.
 5. Optional ICU development headers when building with `-DSTYIO_USE_ICU=ON`.
 
 ## Typical Build And Test Commands
