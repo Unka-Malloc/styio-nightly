@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import re
 import subprocess
@@ -570,6 +571,8 @@ def check_lifecycle(errors: List[str]) -> None:
 
 
 def check_team_docs_gate(errors: List[str]) -> None:
+    if os.environ.get("STYIO_SKIP_TEAM_DOC_GATE") == "1":
+        return
     proc = subprocess.run(
         [sys.executable, str(ROOT / "scripts/team-docs-gate.py")],
         cwd=ROOT,

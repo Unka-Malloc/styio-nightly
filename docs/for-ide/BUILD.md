@@ -1,8 +1,8 @@
 # Styio IDE Build Guide
 
-**Purpose:** Describe how to configure, build, and launch the IDE-facing targets `styio_ide_core` and `styio_lspd`, including the optional Tree-sitter syntax backend.
+**Purpose:** Describe how to configure, build, and launch the IDE-facing targets `styio_ide_core` and `styio_lspd`, including the optional Tree-sitter syntax backend, after the repository-level toolchain is already in place.
 
-**Last updated:** 2026-04-14
+**Last updated:** 2026-04-19
 
 ## Targets
 
@@ -12,9 +12,17 @@
 
 ## Prerequisites
 
+For repository-level bootstrap, common compiler commands, and docs tooling, start with [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
+
 1. LLVM `18.1.0` discoverable by `find_package(LLVM ...)`.
 2. A C++20 compiler and CMake `>= 3.14`.
 3. Node.js only when regenerating the Tree-sitter grammar.
+
+For a fresh Debian/Ubuntu container or VM, bootstrap the toolchain first:
+
+```bash
+./scripts/bootstrap-dev-env.sh
+```
 
 ## Configure
 

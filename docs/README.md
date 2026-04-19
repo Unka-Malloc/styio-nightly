@@ -2,7 +2,7 @@
 
 **Purpose:** Define the boundary of the `docs/` tree and point readers to the generated inventory in [INDEX.md](./INDEX.md); detailed file listings live in directory-level `INDEX.md` files, not here.
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-19
 
 ## Tree Contract
 
@@ -21,17 +21,18 @@
 ## Entry Points
 
 1. Directory inventory: [INDEX.md](./INDEX.md)
-2. Repository ecosystem map: [specs/REPOSITORY-MAP.md](./specs/REPOSITORY-MAP.md)
-3. Documentation policy: [specs/DOCUMENTATION-POLICY.md](./specs/DOCUMENTATION-POLICY.md)
-4. Agent/contributor rules: [specs/AGENT-SPEC.md](./specs/AGENT-SPEC.md)
-5. Project principles and objectives: [specs/PRINCIPLES-AND-OBJECTIVES.md](./specs/PRINCIPLES-AND-OBJECTIVES.md)
-6. Team daily runbooks: [teams/INDEX.md](./teams/INDEX.md)
-7. Current-state rollups: [rollups/INDEX.md](./rollups/INDEX.md)
-8. Workflow assets: [assets/INDEX.md](./assets/INDEX.md)
-9. Design SSOT: [design/INDEX.md](./design/INDEX.md)
-10. IDE integration docs: [for-ide/INDEX.md](./for-ide/INDEX.md)
-11. Archived provenance: [archive/INDEX.md](./archive/INDEX.md)
-12. File-governance alignment plan: [plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md](./plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md)
+2. Build and dev environment: [BUILD-AND-DEV-ENV.md](./BUILD-AND-DEV-ENV.md)
+3. Repository ecosystem map: [specs/REPOSITORY-MAP.md](./specs/REPOSITORY-MAP.md)
+4. Documentation policy: [specs/DOCUMENTATION-POLICY.md](./specs/DOCUMENTATION-POLICY.md)
+5. Agent/contributor rules: [specs/AGENT-SPEC.md](./specs/AGENT-SPEC.md)
+6. Project principles and objectives: [specs/PRINCIPLES-AND-OBJECTIVES.md](./specs/PRINCIPLES-AND-OBJECTIVES.md)
+7. Team daily runbooks: [teams/INDEX.md](./teams/INDEX.md)
+8. Current-state rollups: [rollups/INDEX.md](./rollups/INDEX.md)
+9. Workflow assets: [assets/INDEX.md](./assets/INDEX.md)
+10. Design SSOT: [design/INDEX.md](./design/INDEX.md)
+11. IDE integration docs: [for-ide/INDEX.md](./for-ide/INDEX.md)
+12. Archived provenance: [archive/INDEX.md](./archive/INDEX.md)
+13. File-governance alignment plan: [plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md](./plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md)
 
 ## Default Read Order
 

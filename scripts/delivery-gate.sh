@@ -5,8 +5,8 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/delivery-gate.sh [options]
 
-Run the common Styio delivery floor by composing repository hygiene, team
-runbook maintenance, docs audit, and checkpoint health into one entrypoint.
+Run the common Styio delivery floor by composing repository hygiene, the docs
+gate, and checkpoint health into one entrypoint.
 
 Options:
   --mode <checkpoint|push>  Delivery mode (default: checkpoint)
@@ -111,14 +111,12 @@ case "$MODE" in
 esac
 
 REPO_CMD=(python3 scripts/repo-hygiene-gate.py)
-TEAM_DOCS_CMD=(python3 scripts/team-docs-gate.py)
-DOCS_AUDIT_CMD=(python3 scripts/docs-audit.py)
-ECOSYSTEM_CLI_DOCS_CMD=(python3 scripts/ecosystem-cli-doc-gate.py)
+DOCS_GATE_CMD=(./scripts/docs-gate.sh)
 HEALTH_CMD=(./scripts/checkpoint-health.sh)
 
 if [[ "$MODE" == "checkpoint" ]]; then
   REPO_CMD+=(--mode staged)
-  TEAM_DOCS_CMD+=(--mode staged)
+  DOCS_GATE_CMD+=(--mode staged)
 else
   REPO_CMD+=(--mode push)
   if [[ -n "$REV_RANGE" ]]; then
@@ -134,11 +132,7 @@ else
     exit 2
   fi
 
-  TEAM_DOCS_CMD+=(--base "$BASE_REF")
-fi
-
-if [[ -n "$BASE_REF" && "$MODE" == "checkpoint" ]]; then
-  TEAM_DOCS_CMD=(python3 scripts/team-docs-gate.py --base "$BASE_REF")
+  DOCS_GATE_CMD+=(--mode push --base "$BASE_REF")
 fi
 
 if [[ -n "$BUILD_DIR" ]]; then
@@ -159,9 +153,7 @@ fi
 
 log "mode: ${MODE}"
 run_cmd "${REPO_CMD[@]}"
-run_cmd "${TEAM_DOCS_CMD[@]}"
-run_cmd "${DOCS_AUDIT_CMD[@]}"
-run_cmd "${ECOSYSTEM_CLI_DOCS_CMD[@]}"
+run_cmd "${DOCS_GATE_CMD[@]}"
 
 if [[ "$RUN_HEALTH" -eq 1 ]]; then
   run_cmd "${HEALTH_CMD[@]}"

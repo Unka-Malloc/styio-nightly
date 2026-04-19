@@ -77,7 +77,9 @@ styio-calc> quit
 - 参与贡献
 - 了解测试、文档规则和开发环境
 
-请直接前往 [styio-dev-doc](https://github.com/eBioRing/styio-dev-doc)。
+先看仓库级入口 [docs/BUILD-AND-DEV-ENV.md](docs/BUILD-AND-DEV-ENV.md)。
+
+更广泛的跨仓开发文档再看 [styio-dev-doc](https://github.com/eBioRing/styio-dev-doc)。
 
 这个主仓库的 `README.md` 现在只保留用户入口信息；开发者导向内容不再放在首页展开。
 

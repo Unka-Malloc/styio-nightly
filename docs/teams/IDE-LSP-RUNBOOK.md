@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of `styio_ide_core`, `styio_lspd`, IDE-facing C++ APIs, VFS snapshots, syntax/HIR/SemDB services, and LSP protocol behavior.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-19
 
 ## Mission
 
@@ -29,7 +29,8 @@ Build and test targets:
 2. Decide whether the change is syntax-only, semantic bridge, HIR/SemDB, service API, or LSP boundary.
 3. Keep UTF-16 LSP positions at the server boundary and UTF-8 byte offsets inside IDE core.
 4. Preserve recovery behavior: malformed statements should not unnecessarily erase later useful IDE facts.
-5. Update `docs/for-ide/` when public host behavior changes.
+5. Keep `docs/for-ide/BUILD.md` scoped to IDE/LSP targets; repository-wide bootstrap and common compiler commands belong in [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
+6. Update `docs/for-ide/` when public host behavior changes.
 
 ## Change Classes
 

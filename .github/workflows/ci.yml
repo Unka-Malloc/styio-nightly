@@ -14,8 +14,22 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Checkout
+      - name: Checkout styio-nightly
         uses: actions/checkout@v5
+        with:
+          path: styio-nightly
+
+      - name: Checkout styio-spio sibling repository
+        uses: actions/checkout@v5
+        with:
+          repository: Unka-Malloc/styio-spio
+          path: styio-spio
+
+      - name: Checkout styio-view sibling repository
+        uses: actions/checkout@v5
+        with:
+          repository: Unka-Malloc/styio-view
+          path: styio-view
 
       - name: Install dependencies
         run: |
@@ -30,6 +44,7 @@ jobs:
             python3
 
       - name: Configure
+        working-directory: styio-nightly
         run: >
           cmake -S . -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Debug
@@ -39,45 +54,16 @@ jobs:
           -DSTYIO_ENABLE_FUZZ=ON
 
       - name: Build
+        working-directory: styio-nightly
         run: >
           cmake --build build --target
           styio styio_test styio_security_test styio_soak_test
           styio_fuzz_lexer styio_fuzz_parser
 
-      - name: Docs audit
-        run: ctest --test-dir build -L docs --output-on-failure
+      - name: Docs gate
+        working-directory: styio-nightly
+        run: ./scripts/docs-gate.sh
 
-      - name: Security tests
-        run: ctest --test-dir build -L security --output-on-failure
-
-      - name: Five-layer pipeline tests
-        run: ctest --test-dir build -L styio_pipeline --output-on-failure
-
-      - name: Parser shadow gate (M1 full suite + artifacts)
-        run: |
-          mkdir -p build/parser-shadow-artifacts
-          ./benchmark/parser-shadow-suite-gate.sh ./build/bin/styio ./tests/milestones/m1 ./build/parser-shadow-artifacts
-
-      - name: Parser shadow gate (M2 full suite + artifacts)
-        run: |
-          mkdir -p build/parser-shadow-artifacts-m2
-          ./benchmark/parser-shadow-suite-gate.sh ./build/bin/styio ./tests/milestones/m2 ./build/parser-shadow-artifacts-m2
-
-      - name: Upload parser shadow artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: parser-shadow-artifacts
-          path: |
-            build/parser-shadow-artifacts
-            build/parser-shadow-artifacts-m2
-          if-no-files-found: ignore
-
-      - name: Soak smoke tests
-        run: ctest --test-dir build -L soak_smoke --output-on-failure
-
-      - name: Milestone smoke
-        run: ctest --test-dir build -R '^m1_t01_int_arith$|^m2_t01_simple_func$' --output-on-failure
-
-      - name: Fuzz smoke
-        run: ctest --test-dir build -L fuzz_smoke --output-on-failure
+      - name: Checkpoint health
+        working-directory: styio-nightly
+        run: ./scripts/checkpoint-health.sh --build-dir build
