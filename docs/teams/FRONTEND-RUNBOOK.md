@@ -2,11 +2,11 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of Styio tokenization, parsing, Unicode handling, and legacy/nightly parser migration; this file links to language and test SSOTs instead of redefining grammar.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-20
 
 ## Mission
 
-Own the source-to-AST front end: token definitions, lexer behavior, parser routing, parser recovery, lookahead helpers, and legacy/nightly migration boundaries. Do not own language meaning beyond implementing the design SSOT.
+Own the source-to-AST front end: token definitions, lexer behavior, parser routing, parser recovery, lookahead helpers, legacy/nightly migration boundaries, and the compiler-owned default symbol registry under `src/StyioParser/`. Do not own language meaning beyond implementing the design SSOT.
 
 ## Owned Surface
 
@@ -17,6 +17,7 @@ Primary paths:
 3. `src/StyioParser/`
 4. `src/Deprecated/` only as migration reference
 5. Parser-facing tests under `tests/milestones/`, `tests/fuzz/`, and parser shadow gates
+6. `src/StyioParser/SymbolRegistry.*` as the current SSOT for default symbol / builtin / macro-like entries
 
 Build and test targets:
 
@@ -33,6 +34,7 @@ Build and test targets:
 4. Add or update a failing fixture before changing accepted behavior.
 5. Update [../assets/workflow/TEST-CATALOG.md](../assets/workflow/TEST-CATALOG.md) when adding milestone or parser acceptance coverage.
 6. When token or primitive spelling tables change, add a focused regression so public token names do not drift silently.
+7. Keep `src/StyioParser/SymbolRegistry.*` as the single compiler-owned default symbol table; IDE or contract emitters must consume it instead of carrying a second builtin/keyword list.
 
 ## Change Classes
 

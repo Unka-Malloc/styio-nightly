@@ -2,7 +2,7 @@
 
 **Purpose:** 作为三仓协调镜像，冻结 `styio-nightly`、`styio-spio`、`styio-view` 当前 active internal CLI contract 集合，并给跨仓文档一致性 gate 提供固定对照面。
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-20
 
 ## 1. Rules
 
@@ -20,6 +20,7 @@
 3. `styio` 的 compiler-side internal CLI contract 固定为：
    - `styio --machine-info=json`
    - `styio --compile-plan <path>`
+   - `styio --source-build-info=json`
 4. 任何 active internal CLI contract 变更，必须在同一 checkpoint 内同步更新三仓文档与 gate manifest。
 
 ## 2. `styio` -> `spio` / `view`
@@ -68,6 +69,28 @@ Owner / consumer docs:
 
 1. `styio-spio/docs/styio/Styio-External-Interface-Requirement-Spec.md`
 2. `styio-view/docs/for-styio/Styio-Compile-Run-Contract.md`
+
+### 2.3 `styio --source-build-info=json`
+
+Canonical form:
+
+```text
+styio --source-build-info=json
+```
+
+当前跨仓必须保持一致的要点：
+
+1. official source origin 固定为 `https://github.com/eBioRing/Styio.git`
+2. `stable` 和 `nightly` 通道映射到同名源码分支
+3. official controlled source graph 当前冻结为 `compiler_core / std_symbols / runtime / macro_prelude`
+4. 当前唯一官方 build mode 是 `minimal`
+5. default symbol layer 的单一真相源当前是 `src/StyioParser/SymbolRegistry.cpp`
+6. `--source-build-info=json` 只描述 source-build contract，不替代 binary 通道的 `--machine-info=json`
+
+Owner / consumer docs:
+
+1. `styio-nightly/docs/for_spio/Styio-Nano-Spio-Coordination.md`
+2. `styio-spio/docs/governance/Spio-CLI-Contract.md`
 
 ## 3. `spio` -> `view`
 

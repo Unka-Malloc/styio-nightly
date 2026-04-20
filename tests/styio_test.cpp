@@ -492,6 +492,32 @@ TEST(StyioDiagnostics, MachineInfoJsonReflectsCliDictImplAliasSelection) {
   EXPECT_NE(result.stdout_text.find("\"source\":\"cli\""), std::string::npos);
 }
 
+TEST(StyioDiagnostics, SourceBuildInfoJsonReportsOfficialSourceLayoutFields) {
+  const char* runner = std::getenv("STYIO_COMPILER_EXE");
+  if (runner == nullptr || runner[0] == '\0') {
+    runner = STYIO_COMPILER_EXE;
+  }
+  ASSERT_TRUE(runner != nullptr && runner[0] != '\0');
+
+  const std::string cmd = std::string("\"") + runner + "\" --source-build-info=json";
+  const CommandResult result = run_stdout_command(cmd);
+  ASSERT_EQ(result.exit_code, 0) << result.stdout_text;
+  EXPECT_NE(result.stdout_text.find("\"contract\": \"source-build-info\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"source_layout_version\": 1"), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"official_source_origin\": \"https://github.com/eBioRing/Styio.git\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"name\": \"stable\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"branch\": \"stable\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"name\": \"nightly\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"branch\": \"nightly\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"supported_build_modes\": ["), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"minimal\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"id\": \"std_symbols\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"id\": \"macro_prelude\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"path\": \"src/StyioParser/SymbolRegistry.cpp\""), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"macro_like_symbols\": ["), std::string::npos);
+  EXPECT_NE(result.stdout_text.find("\"match\""), std::string::npos);
+}
+
 TEST(StyioTypes, F32BuiltinMappingUsesF32InternalName) {
   const StyioDataType f32 = styio_data_type_from_name("f32");
   EXPECT_EQ(f32.option, StyioDataTypeOption::Float);

@@ -99,6 +99,32 @@ CONTRACT_RULES: tuple[ContractRule, ...] = (
         ),
     ),
     ContractRule(
+        key="styio.source_build",
+        summary="styio source-build metadata stays aligned for spio build",
+        docs=(
+            DocRule(
+                "styio-nightly/docs/plans/Styio-Ecosystem-CLI-Contract-Matrix.md",
+                (
+                    "### 2.3 `styio --source-build-info=json`",
+                    "`https://github.com/eBioRing/Styio.git`",
+                    "`compiler_core / std_symbols / runtime / macro_prelude`",
+                    "`minimal`",
+                    "`src/StyioParser/SymbolRegistry.cpp`",
+                ),
+            ),
+            DocRule(
+                "styio-spio/docs/governance/Spio-CLI-Contract.md",
+                (
+                    "`https://github.com/eBioRing/Styio.git`",
+                    "`stable` and `nightly` to the same-named source branches",
+                    "`spio build minimal`",
+                    "`spio-toolchain.lock`",
+                    "source-build mode bypasses the published binary compatibility matrix",
+                ),
+            ),
+        ),
+    ),
+    ContractRule(
         key="spio.machine_info",
         summary="spio machine-info advertised contract lines stay aligned",
         docs=(

@@ -39,6 +39,7 @@
 #include "StyioParser/Parser.hpp"
 #include "StyioParser/Tokenizer.hpp"
 #include "StyioConfig/NanoProfile.hpp"
+#include "StyioConfig/SourceBuildInfo.hpp"
 #include "StyioRuntime/HandleTable.hpp"
 #include "StyioSession/CompilationSession.hpp"
 #include "StyioToString/ToStringVisitor.hpp" /* StyioRepr */
@@ -339,6 +340,9 @@ styio_nano_disabled_option_latest(int argc, char* argv[]) {
   for (int i = 1; i < argc; ++i) {
     if (styio_arg_matches_latest(argv[i], "--compile-plan")) {
       return "compile-plan consumer is only available in the full styio compiler";
+    }
+    if (styio_arg_matches_latest(argv[i], "--source-build-info")) {
+      return "source-build metadata is only available in the full styio compiler";
     }
     if (styio_arg_matches_latest(argv[i], "--nano-create")
         || styio_arg_matches_latest(argv[i], "--nano-publish")
@@ -2951,6 +2955,16 @@ styio_emit_machine_info_json(const StyioDictImplSelectionLatest& dict_impl_selec
     << "}\n";
 }
 
+static void
+styio_emit_source_build_info_json() {
+  const styio::config::SourceBuildInfoOptions options{
+    STYIO_PROJECT_VERSION,
+    STYIO_RELEASE_CHANNEL,
+    STYIO_EDITION_MAX,
+  };
+  std::cout << styio::config::source_build_info_json(options) << std::endl;
+}
+
 struct StyioDiagnosticSinkLatest
 {
   bool enabled = false;
@@ -3880,6 +3894,10 @@ main(
     "Read a versioned compile-plan JSON and treat it as the full compiler request envelope.",
     cxxopts::value<std::string>()
   )(
+    "source-build-info",
+    "Emit machine-readable source-build metadata for spio build. Supported format: json",
+    cxxopts::value<std::string>()
+  )(
     "nano-create",
     "Materialize a styio-nano package using a local-subset profile or a cloud repository/package source.",
     cxxopts::value<bool>()->default_value("false")
@@ -4119,6 +4137,18 @@ main(
       return static_cast<int>(StyioExitCode::CliError);
     }
     styio_emit_machine_info_json(dict_impl_selection);
+    return static_cast<int>(StyioExitCode::Success);
+  }
+#endif
+
+#if !STYIO_NANO_BUILD
+  if (cmlopts.count("source-build-info")) {
+    const std::string source_build_info_format = cmlopts["source-build-info"].as<std::string>();
+    if (source_build_info_format != "json") {
+      std::cerr << "[CliError] unsupported --source-build-info format: " << source_build_info_format << std::endl;
+      return static_cast<int>(StyioExitCode::CliError);
+    }
+    styio_emit_source_build_info_json();
     return static_cast<int>(StyioExitCode::Success);
   }
 #endif

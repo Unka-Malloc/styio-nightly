@@ -3,6 +3,7 @@ set(STYIO_FRONTEND_FOUNDATION_SOURCES
   StyioUnicode/Unicode.cpp
   StyioParser/Parser.cpp
   StyioParser/ParserLookahead.cpp
+  StyioParser/SymbolRegistry.cpp
   StyioParser/NewParserExpr.cpp
   StyioParser/Tokenizer.cpp
 )

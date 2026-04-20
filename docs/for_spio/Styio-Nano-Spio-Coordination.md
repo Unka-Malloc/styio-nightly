@@ -1,8 +1,8 @@
-# Styio Nano / Spio Coordination Plan
+# Styio / Spio Coordination Plan
 
-**Purpose:** 从 `styio` 主仓库视角，冻结当前 `styio-nano` 的包产出、静态仓库布局、bootstrap 用法与后续交接边界，供 `styio-spio` 后续接管远端分发、安装、缓存与项目级生命周期时使用；本文件描述的是 `styio` 侧 handoff contract，不替代 `styio-spio` 仓库内自己的 SSOT。
+**Purpose:** 从 `styio` 主仓库视角，冻结 `spio` 双通道消费 `styio` 的 handoff contract：`binary` 通道继续消费已发布的 `styio` 二进制和 compile-plan 合同，`build` 通道消费官方受控源码子图和 source-build 元数据；同时保留 `styio-nano` bootstrap/package contract 作为 binary 通道的一部分。本文件描述的是 `styio` 侧 handoff contract，不替代 `styio-spio` 仓库内自己的 SSOT。
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-20
 
 **Related docs:**
 - [`Styio Ecosystem Bootstrap Plan`](../plans/Styio-Ecosystem-Bootstrap-Plan.md)
@@ -14,7 +14,12 @@
 
 当前阶段要解决的是一件很具体的事：
 
-`styio` 需要能够自己完成 `styio-nano` 的最小闭环，用于 bootstrap、回归测试与本地 edge profile 验证；但长期来看，远端仓库消费、安装、缓存、pin、vendor、项目工具链切换，不应继续堆在 `styio` 主编译器里，而应由 `styio-spio` 接管。
+`styio` 需要同时支持两条由 `spio` 触发的消费路径：
+
+- `binary`：继续用已发布 `styio` 二进制、`--machine-info=json`、`--compile-plan` 和 `styio-nano` bootstrap/package contract 支撑开箱即用流程。
+- `build`：通过官方源码树和稳定的 source-build 元数据，让 `spio build` 能够拉取 `styio` 源码、按受控子图分层构建 compiler/std-symbols/runtime，并在项目级执行最小化构建。
+
+也就是说，`styio-nano` 仍然要能自己完成最小闭环，用于 bootstrap、回归测试与 edge profile 验证；但长期来看，远端仓库消费、安装、缓存、pin、vendor、项目工具链切换，不应继续堆在 `styio` 主编译器里，而应由 `styio-spio` 接管。
 
 因此，本阶段的边界是：
 
@@ -32,9 +37,64 @@
 
 ---
 
-## 2. `styio` 当前已经落地的能力
+## 2. 双通道 handoff contract
 
-### 2.1 本地导出
+### 2.1 `binary` 通道
+
+`spio use binary` 继续消费已发布的 full `styio` compiler。`styio` 侧当前的公开合同仍然是：
+
+- `styio --machine-info=json`
+- `styio --compile-plan <path>`
+- `styio-nano` bootstrap/package contract
+
+这条通道仍然是黑盒消费：`spio` 不需要理解 `styio` 内部源码图，只根据 machine-info、compat matrix 和 compile-plan handoff 决定能否继续。
+
+### 2.2 `build` 通道
+
+`spio use build` 消费 `styio` 的官方源码图，而不是已发布二进制。当前固定的官方 source-build 入口是：
+
+- `styio --source-build-info=json`
+
+当前 source-build contract 冻结这些字段：
+
+- 官方源码源：`https://github.com/eBioRing/Styio.git`
+- 通道分支：
+  - `stable -> stable`
+  - `nightly -> nightly`
+- 受控子图：
+  - `compiler_core`
+  - `std_symbols`
+  - `runtime`
+  - `macro_prelude`
+- 官方 build mode：
+  - `minimal`
+- 允许的 override：
+  - `source_root`
+  - `source_rev`
+
+`source-build-info` 的职责不是替代 `machine-info`，而是描述 `spio build` 可以依赖的官方源码布局与 override 边界。
+
+### 2.3 默认符号层 contract
+
+`styio` 当前把默认符号层收敛到：
+
+- `src/StyioParser/SymbolRegistry.hpp`
+- `src/StyioParser/SymbolRegistry.cpp`
+
+这层是当前 source-build override surface 的唯一真相源，用来描述：
+
+- 默认符号
+- 内建类型
+- macro-like 符号
+- prelude / builtin member surface
+
+IDE、handoff contract 和未来的 source-build 优化逻辑都必须从这个 registry 读取默认符号层，不得再维护第二份散落的 builtin/keyword 表。
+
+---
+
+## 3. `styio` 当前已经落地的能力
+
+### 3.1 本地导出
 
 `styio --nano-create --nano-mode=local-subset ...`
 
@@ -58,13 +118,13 @@ materialized package 目录至少包含：
 - `build-styio-nano.sh`
 - `src/...` closure files
 
-### 2.2 本地 publish
+### 3.2 本地 publish
 
 `styio --nano-publish ...`
 
 该路径当前只支持将**已经 materialize 完成**的 nano 包写入**本地静态仓库**。它不负责远端鉴权、推送协议、缓存策略，也不承担 package manager 的角色。
 
-### 2.3 静态仓库 consume
+### 3.3 静态仓库 consume
 
 `styio --nano-create --nano-mode=cloud ...`
 
@@ -77,7 +137,7 @@ materialized package 目录至少包含：
 
 但这条路径的定位是 bootstrap / regression / contract validation，不是长期 package UX。
 
-### 2.4 machine-info 能力声明
+### 3.4 machine-info 能力声明
 
 当前 full `styio` 的 `--machine-info=json` 已声明这些 contract capability：
 
@@ -90,9 +150,9 @@ materialized package 目录至少包含：
 
 ---
 
-## 3. 当前静态仓库 contract
+## 4. 当前静态仓库 contract
 
-### 3.1 marker
+### 4.1 marker
 
 仓库根必须包含：
 
@@ -107,7 +167,7 @@ materialized package 目录至少包含：
 }
 ```
 
-### 3.2 index entry
+### 4.2 index entry
 
 索引条目路径：
 
@@ -128,7 +188,7 @@ materialized package 目录至少包含：
 }
 ```
 
-### 3.3 blob layout
+### 4.3 blob layout
 
 当前 blob 路径：
 
@@ -143,7 +203,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 - `styio-nano.profile.toml`
 - `styio-nano-package.toml`
 
-### 3.4 校验要求
+### 4.4 校验要求
 
 `styio` 侧当前会做：
 
@@ -157,7 +217,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 ---
 
-## 4. package receipt contract
+## 5. package receipt contract
 
 当前 `styio-nano-package.toml` 至少使用 `[package]` 段；`styio` publish 侧当前会从 receipt 中读取这些字段作为默认值：
 
@@ -187,9 +247,9 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 ---
 
-## 5. `styio` 与 `spio` 的职责切分
+## 6. `styio` 与 `spio` 的职责切分
 
-### 5.1 `styio` 应继续保留的职责
+### 6.1 `styio` 应继续保留的职责
 
 这些职责留在 `styio` 内是合理的：
 
@@ -198,6 +258,8 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 - 用 closure 重建 `styio-nano`
 - 对静态仓库 contract 做 producer / consumer 验证
 - 对 nano package workflow 做回归测试
+- 维护官方 source-build 子图与 `--source-build-info=json`
+- 维护默认符号层 registry 与 source-build 最小 override surface
 
 原因很简单：这些都直接依赖编译器内部知识，尤其是：
 
@@ -205,7 +267,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 - 哪些 profile 开关映射到哪些 compile definitions
 - 哪些 runtime / CLI 能力必须被裁剪
 
-### 5.2 应由 `spio` 接管的职责
+### 6.2 应由 `spio` 接管的职责
 
 这些职责不应长期继续堆在 `styio` 主编译器里：
 
@@ -214,6 +276,8 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 - 本地缓存目录布局
 - pin / install / use / vendor
 - project-level toolchain selection
+- build 通道源码拉取、通道分支选择、revision 锁定
+- source-build toolchain state / lockfile / local checkout policy
 - package search / registry UX
 - 发布流程中的权限与分发策略
 
@@ -224,9 +288,9 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 ---
 
-## 6. `spio` 后续需要使用的 `styio` 接口
+## 7. `spio` 后续需要使用的 `styio` 接口
 
-### 6.1 已可用接口
+### 7.1 已可用接口
 
 `spio` 现在就可以依赖这些 `styio` 能力：
 
@@ -235,7 +299,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 3. `--nano-create` 静态仓库读取
 4. `--nano-publish` 本地静态仓库写入
 
-### 6.2 建议使用方式
+### 7.2 建议使用方式
 
 建议 `spio` 后续按这个模型调用：
 
@@ -252,7 +316,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 - `spio` 不需要复制 package-local CMake 生成逻辑
 - `spio` 只需要编排 `styio` 已提供的 producer / verifier 接口
 
-### 6.3 `styio` 侧交接完成清单
+### 7.3 `styio` 侧交接完成清单
 
 这个仓库对 `spio` 的“已完成工作”不应理解成“完整包管理系统已经完成”，而应理解成：
 
@@ -268,13 +332,13 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 | materialized package 能在包内重建 `bin/styio-nano` | `styio` | Completed | `StyioNanoPackage.LocalSubsetConfigMaterializesBundle` |
 | `--nano-publish` 能写入静态仓库 marker / index / blob | `styio` | Completed | `StyioNanoPackage.PublishConfigWritesRepositoryAndRoundTripsToCloudInstall` |
 | `--nano-create --nano-mode=cloud` 能从静态仓库 consume 并安装 nano 包 | `styio` | Completed | `StyioNanoPackage.CloudRepositoryConfigMaterializesBundle`, `StyioNanoPackage.PublishConfigWritesRepositoryAndRoundTripsToCloudInstall` |
-| 静态仓库 consume 路径会执行 marker / index / sha256 / size / package-root 最小校验 | `styio` | Completed | 本文 §3.4 contract；consume roundtrip 覆盖见 `StyioNanoPackage.CloudRepositoryConfigMaterializesBundle` |
-| receipt 默认字段可驱动 publish 默认 package/version/channel 解析 | `styio` | Completed | 本文 §4 contract；publish roundtrip 覆盖见 `StyioNanoPackage.PublishConfigWritesRepositoryAndRoundTripsToCloudInstall` |
-| `spio` 可只编排现有 producer / verifier 接口，而无需复制 closure/CMake 逻辑 | `styio` contract for `spio` | Completed | 本文 §6.1-§6.2；接口入口为 `--machine-info=json` / `--nano-create` / `--nano-publish` |
-| 远端 registry source、cache、pin、vendor、install/use/search UX | `spio` | Out of scope for this repo | `docs/specs/REPOSITORY-MAP.md`, 本文 §5.2 |
-| 完整 registry service protocol（channel index、latest alias、listing API、auth/signing/trust） | `spio` | Out of scope for this repo | 本文 §7.1 |
-| `spio build/check/run/test` 所需 compile-plan live handoff | `styio` | Completed baseline | 本文 §7.2；`StyioDiagnostics.CompilePlan*` |
-| 比 source closure 更细粒度的最小闭包优化 | `styio` | Pending | 本文 §7.3 |
+| 静态仓库 consume 路径会执行 marker / index / sha256 / size / package-root 最小校验 | `styio` | Completed | 本文 §4.4 contract；consume roundtrip 覆盖见 `StyioNanoPackage.CloudRepositoryConfigMaterializesBundle` |
+| receipt 默认字段可驱动 publish 默认 package/version/channel 解析 | `styio` | Completed | 本文 §5 contract；publish roundtrip 覆盖见 `StyioNanoPackage.PublishConfigWritesRepositoryAndRoundTripsToCloudInstall` |
+| `spio` 可只编排现有 producer / verifier 接口，而无需复制 closure/CMake 逻辑 | `styio` contract for `spio` | Completed | 本文 §7.1-§7.2；接口入口为 `--machine-info=json` / `--nano-create` / `--nano-publish` |
+| 远端 registry source、cache、pin、vendor、install/use/search UX | `spio` | Out of scope for this repo | `docs/specs/REPOSITORY-MAP.md`, 本文 §6.2 |
+| 完整 registry service protocol（channel index、latest alias、listing API、auth/signing/trust） | `spio` | Out of scope for this repo | 本文 §8.1 |
+| `spio build/check/run/test` 所需 compile-plan live handoff | `styio` | Completed baseline | 本文 §8.2；`StyioDiagnostics.CompilePlan*` |
+| 比 source closure 更细粒度的最小闭包优化 | `styio` | Pending | 本文 §8.3 |
 
 因此，这个仓库目前已经完成的是：
 
@@ -289,11 +353,11 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 ---
 
-## 7. 仍然缺少、需要后续联动的部分
+## 8. 仍然缺少、需要后续联动的部分
 
 这些仍然是后续阶段的工作，不应伪装成“已经完成”：
 
-### 7.1 真正的仓库索引服务语义
+### 8.1 真正的仓库索引服务语义
 
 当前 contract 仍是“静态仓库布局”，不是完整的 registry service protocol。
 
@@ -313,7 +377,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 这些更适合在 `spio` 仓库侧定义。
 
-### 7.2 compile-plan live handoff
+### 8.2 compile-plan live handoff
 
 这部分现在已经进入 **baseline live** 状态：
 
@@ -333,7 +397,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 - contract 字段稳定性与文档同步
 - 在不扩张 package-manager scope 的前提下持续维护 producer boundary
 
-### 7.3 更细粒度的 closure 剪裁
+### 8.3 更细粒度的 closure 剪裁
 
 当前 local-subset 已经做到 source closure + package-local rebuild，但仍不是“函数级最小闭包”。
 
@@ -346,7 +410,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 ---
 
-## 8. 推荐的阶段性交接顺序
+## 9. 推荐的阶段性交接顺序
 
 ### Phase A: `styio` 内自举稳定
 
@@ -358,7 +422,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 当前状态：已基本完成。
 
-更精确地说：按 §6.3 的 `styio` 侧 checklist，**static nano contract 与 compile-plan live handoff baseline 已完成**；后续项集中在更细粒度 closure 收缩与 compile-plan edge hardening，而不是 package-manager UX 本身。
+更精确地说：按 §7.3 的 `styio` 侧 checklist，**static nano contract 与 compile-plan live handoff baseline 已完成**；后续项集中在更细粒度 closure 收缩与 compile-plan edge hardening，而不是 package-manager UX 本身。
 
 ### Phase B: `spio` 接管本地 lifecycle
 
@@ -387,7 +451,7 @@ blob 内容是一个 tar 包，解开后必须能解析出 package root，并且
 
 ---
 
-## 9. 本阶段结论
+## 10. 本阶段结论
 
 到当前为止，`styio` 侧已经具备：
 
