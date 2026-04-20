@@ -35,12 +35,14 @@ Key handoff document:
 8. When runtime event artifacts change, keep `supported_contracts.runtime_events`, `feature_flags.runtime_event_stream`, `receipt.json`, and `build_root/runtime-events.jsonl` aligned in the same checkpoint.
 9. Keep generated nano subset build manifests aligned with the repository compatibility floor and the shared `styio-nightly` / `styio-spio` toolchain baseline when `src/main.cpp` emits CMake scaffolding.
 10. Keep `scripts/source-build-minimal.sh` aligned with the published `--source-build-info=json` contract so build-channel consumers have one stable compiler-side helper entry.
+11. Prefer named enum tables and shared field-resolution helpers for project config, nano package config, nano publish config, and nano manifest parsing so new keys or aliases are added in one place instead of another `if/else` ladder in `src/main.cpp`.
+12. Treat config alias changes as contract changes when they affect source-build, nano packaging, or publish bootstrap behavior; update this runbook and the handoff docs in the same checkpoint.
 
 ## Change Classes
 
 1. Small: help text, config parsing cleanup, or non-contract local path fix. Run targeted CLI or nano tests.
 2. Medium: CLI option, diagnostic format, exit code, nano profile, machine-info capability, or runtime event artifact change. Update tests and docs.
-3. High: nano package layout, publish/consume validation, or compiler/package-manager responsibility split. Use checkpoint workflow and review the `styio-spio` handoff.
+3. High: nano package layout, publish/consume validation, compiler/package-manager responsibility split, or config parser alias/table changes that affect bootstrap contracts. Use checkpoint workflow and review the `styio-spio` handoff.
 
 ## Required Gates
 

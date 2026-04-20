@@ -5,6 +5,7 @@
 /*                                   */
 
 // [C++ STL]
+#include <array>
 #include <algorithm>
 #include <atomic>
 #include <cctype>
@@ -19,10 +20,12 @@
 #include <list>
 #include <map>
 #include <memory>
+#include <optional>
 #include <regex>
 #include <set>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <unordered_map>
@@ -334,85 +337,122 @@ styio_arg_matches_latest(const char* raw, const char* long_name, const char* sho
   return false;
 }
 
+enum class StyioNanoOptionCategoryLatest {
+  CompilePlan,
+  SourceBuildInfo,
+  NanoPackaging,
+  MachineInfo,
+  Debug,
+  StyioAst,
+  StyioIr,
+  LlvmIr,
+  ParserEngine,
+  ParserShadowCompare,
+};
+
+struct StyioNanoOptionSpecLatest {
+  StyioNanoOptionCategoryLatest category;
+  const char* long_name;
+};
+
+static std::optional<StyioNanoOptionCategoryLatest>
+styio_parse_nano_option_category_latest(const char* raw) {
+  static constexpr std::array<StyioNanoOptionSpecLatest, 26> kOptions = {{
+      {StyioNanoOptionCategoryLatest::CompilePlan, "--compile-plan"},
+      {StyioNanoOptionCategoryLatest::SourceBuildInfo, "--source-build-info"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-create"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-publish"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-package-config"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-publish-config"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-mode"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-output"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-name"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-profile"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-binary"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-source-root"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-package-dir"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-channel"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-manifest"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-registry"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-package"},
+      {StyioNanoOptionCategoryLatest::NanoPackaging, "--nano-version"},
+      {StyioNanoOptionCategoryLatest::MachineInfo, "--machine-info"},
+      {StyioNanoOptionCategoryLatest::Debug, "--debug"},
+      {StyioNanoOptionCategoryLatest::StyioAst, "--styio-ast"},
+      {StyioNanoOptionCategoryLatest::StyioIr, "--styio-ir"},
+      {StyioNanoOptionCategoryLatest::LlvmIr, "--llvm-ir"},
+      {StyioNanoOptionCategoryLatest::ParserEngine, "--parser-engine"},
+      {StyioNanoOptionCategoryLatest::ParserShadowCompare, "--parser-shadow-compare"},
+      {StyioNanoOptionCategoryLatest::ParserShadowCompare, "--parser-shadow-artifact-dir"},
+  }};
+
+  for (const auto& option : kOptions) {
+    if (styio_arg_matches_latest(raw, option.long_name)) {
+      return option.category;
+    }
+  }
+  return std::nullopt;
+}
+
 static std::string
 styio_nano_disabled_option_latest(int argc, char* argv[]) {
 #if STYIO_NANO_BUILD
   for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--compile-plan")) {
-      return "compile-plan consumer is only available in the full styio compiler";
+    const auto category = styio_parse_nano_option_category_latest(argv[i]);
+    if (!category.has_value()) {
+      continue;
     }
-    if (styio_arg_matches_latest(argv[i], "--source-build-info")) {
-      return "source-build metadata is only available in the full styio compiler";
-    }
-    if (styio_arg_matches_latest(argv[i], "--nano-create")
-        || styio_arg_matches_latest(argv[i], "--nano-publish")
-        || styio_arg_matches_latest(argv[i], "--nano-package-config")
-        || styio_arg_matches_latest(argv[i], "--nano-publish-config")
-        || styio_arg_matches_latest(argv[i], "--nano-mode")
-        || styio_arg_matches_latest(argv[i], "--nano-output")
-        || styio_arg_matches_latest(argv[i], "--nano-name")
-        || styio_arg_matches_latest(argv[i], "--nano-profile")
-        || styio_arg_matches_latest(argv[i], "--nano-binary")
-        || styio_arg_matches_latest(argv[i], "--nano-source-root")
-        || styio_arg_matches_latest(argv[i], "--nano-package-dir")
-        || styio_arg_matches_latest(argv[i], "--nano-channel")
-        || styio_arg_matches_latest(argv[i], "--nano-manifest")
-        || styio_arg_matches_latest(argv[i], "--nano-registry")
-        || styio_arg_matches_latest(argv[i], "--nano-package")
-        || styio_arg_matches_latest(argv[i], "--nano-version")) {
-      return "styio-nano packaging commands are only available in the full styio compiler";
-    }
-  }
+    switch (*category) {
+      case StyioNanoOptionCategoryLatest::CompilePlan:
+        return "compile-plan consumer is only available in the full styio compiler";
+      case StyioNanoOptionCategoryLatest::SourceBuildInfo:
+        return "source-build metadata is only available in the full styio compiler";
+      case StyioNanoOptionCategoryLatest::NanoPackaging:
+        return "styio-nano packaging commands are only available in the full styio compiler";
+      case StyioNanoOptionCategoryLatest::MachineInfo:
 #if !STYIO_NANO_ENABLE_MACHINE_INFO
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--machine-info")) {
-      return "--machine-info is disabled in this styio-nano profile";
-    }
-  }
+        return "--machine-info is disabled in this styio-nano profile";
+#else
+        break;
 #endif
+      case StyioNanoOptionCategoryLatest::Debug:
 #if !STYIO_NANO_ENABLE_DEBUG_CLI
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--debug")) {
-      return "--debug is disabled in this styio-nano profile";
-    }
-  }
+        return "--debug is disabled in this styio-nano profile";
+#else
+        break;
 #endif
+      case StyioNanoOptionCategoryLatest::StyioAst:
 #if !STYIO_NANO_ENABLE_AST_DUMP_CLI
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--styio-ast")) {
-      return "--styio-ast is disabled in this styio-nano profile";
-    }
-  }
+        return "--styio-ast is disabled in this styio-nano profile";
+#else
+        break;
 #endif
+      case StyioNanoOptionCategoryLatest::StyioIr:
 #if !STYIO_NANO_ENABLE_STYIO_IR_DUMP_CLI
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--styio-ir")) {
-      return "--styio-ir is disabled in this styio-nano profile";
-    }
-  }
+        return "--styio-ir is disabled in this styio-nano profile";
+#else
+        break;
 #endif
+      case StyioNanoOptionCategoryLatest::LlvmIr:
 #if !STYIO_NANO_ENABLE_LLVM_IR_DUMP_CLI
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--llvm-ir")) {
-      return "--llvm-ir is disabled in this styio-nano profile";
-    }
-  }
+        return "--llvm-ir is disabled in this styio-nano profile";
+#else
+        break;
 #endif
+      case StyioNanoOptionCategoryLatest::ParserEngine:
 #if !STYIO_NANO_ENABLE_LEGACY_PARSER
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--parser-engine")) {
-      return "--parser-engine is disabled in this styio-nano profile";
-    }
-  }
+        return "--parser-engine is disabled in this styio-nano profile";
+#else
+        break;
 #endif
+      case StyioNanoOptionCategoryLatest::ParserShadowCompare:
 #if !STYIO_NANO_ENABLE_PARSER_SHADOW_COMPARE
-  for (int i = 1; i < argc; ++i) {
-    if (styio_arg_matches_latest(argv[i], "--parser-shadow-compare")
-        || styio_arg_matches_latest(argv[i], "--parser-shadow-artifact-dir")) {
-      return "parser shadow compare options are disabled in this styio-nano profile";
+        return "parser shadow compare options are disabled in this styio-nano profile";
+#else
+        break;
+#endif
     }
   }
-#endif
 #endif
   return "";
 }
@@ -605,6 +645,274 @@ styio_parse_config_scalar_latest(
   return true;
 }
 
+// Keep config section/key normalization centralized so the parser loops stay linear.
+enum class StyioProjectConfigSectionLatest {
+  RootOrRuntime,
+  Dict,
+  Other,
+};
+
+enum class StyioProjectConfigFieldLatest {
+  None,
+  DictImpl,
+};
+
+enum class StyioNanoPackageConfigSectionLatest {
+  RootOrNano,
+  NanoLocal,
+  NanoCloud,
+  Other,
+};
+
+enum class StyioNanoPackageConfigFieldLatest {
+  None,
+  Mode,
+  OutputDir,
+  PackageName,
+  Profile,
+  Binary,
+  SourceRoot,
+  Manifest,
+  Registry,
+  RegistryPackage,
+  RegistryVersion,
+};
+
+enum class StyioNanoPublishConfigSectionLatest {
+  Publish,
+  Other,
+};
+
+enum class StyioNanoPublishFieldLatest {
+  None,
+  PackageDir,
+  Registry,
+  Package,
+  Version,
+  Channel,
+};
+
+enum class StyioNanoManifestSectionLatest {
+  PackageRoot,
+  Artifact,
+  Other,
+};
+
+enum class StyioNanoManifestFieldLatest {
+  None,
+  PackageName,
+  Version,
+  Channel,
+  Binary,
+  Profile,
+};
+
+template <typename Enum>
+struct StyioNamedEnumSpecLatest {
+  std::string_view name;
+  Enum value;
+};
+
+template <typename Enum, size_t N>
+static std::optional<Enum>
+styio_lookup_named_enum_latest(
+  std::string_view raw_name,
+  const std::array<StyioNamedEnumSpecLatest<Enum>, N>& specs
+) {
+  const auto it = std::find_if(
+    specs.begin(),
+    specs.end(),
+    [raw_name](const StyioNamedEnumSpecLatest<Enum>& spec) {
+      return spec.name == raw_name;
+    });
+  if (it == specs.end()) {
+    return std::nullopt;
+  }
+  return it->value;
+}
+
+static StyioProjectConfigSectionLatest
+styio_parse_project_config_section_latest(const std::string& raw_section) {
+  static constexpr std::array<StyioNamedEnumSpecLatest<StyioProjectConfigSectionLatest>, 4> kSections = {{
+      {"", StyioProjectConfigSectionLatest::RootOrRuntime},
+      {"runtime", StyioProjectConfigSectionLatest::RootOrRuntime},
+      {"dict", StyioProjectConfigSectionLatest::Dict},
+      {"dictionary", StyioProjectConfigSectionLatest::Dict},
+  }};
+  return styio_lookup_named_enum_latest(raw_section, kSections)
+    .value_or(StyioProjectConfigSectionLatest::Other);
+}
+
+static StyioProjectConfigFieldLatest
+styio_parse_project_config_field_latest(
+  StyioProjectConfigSectionLatest section,
+  const std::string& key
+) {
+  switch (section) {
+    case StyioProjectConfigSectionLatest::RootOrRuntime: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioProjectConfigFieldLatest>, 2> kFields = {{
+          {"dict_impl", StyioProjectConfigFieldLatest::DictImpl},
+          {"dictionary_impl", StyioProjectConfigFieldLatest::DictImpl},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioProjectConfigFieldLatest::None);
+    }
+    case StyioProjectConfigSectionLatest::Dict: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioProjectConfigFieldLatest>, 1> kFields = {{
+          {"impl", StyioProjectConfigFieldLatest::DictImpl},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioProjectConfigFieldLatest::None);
+    }
+    case StyioProjectConfigSectionLatest::Other:
+      break;
+  }
+  return StyioProjectConfigFieldLatest::None;
+}
+
+static StyioNanoPackageConfigSectionLatest
+styio_parse_nano_package_config_section_latest(const std::string& raw_section) {
+  static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoPackageConfigSectionLatest>, 4> kSections = {{
+      {"", StyioNanoPackageConfigSectionLatest::RootOrNano},
+      {"nano", StyioNanoPackageConfigSectionLatest::RootOrNano},
+      {"nano.local", StyioNanoPackageConfigSectionLatest::NanoLocal},
+      {"nano.cloud", StyioNanoPackageConfigSectionLatest::NanoCloud},
+  }};
+  return styio_lookup_named_enum_latest(raw_section, kSections)
+    .value_or(StyioNanoPackageConfigSectionLatest::Other);
+}
+
+static StyioNanoPackageConfigFieldLatest
+styio_parse_nano_package_config_field_latest(
+  StyioNanoPackageConfigSectionLatest section,
+  const std::string& key
+) {
+  switch (section) {
+    case StyioNanoPackageConfigSectionLatest::RootOrNano: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoPackageConfigFieldLatest>, 8> kFields = {{
+          {"mode", StyioNanoPackageConfigFieldLatest::Mode},
+          {"output_dir", StyioNanoPackageConfigFieldLatest::OutputDir},
+          {"output", StyioNanoPackageConfigFieldLatest::OutputDir},
+          {"name", StyioNanoPackageConfigFieldLatest::PackageName},
+          {"package_name", StyioNanoPackageConfigFieldLatest::PackageName},
+          {"profile", StyioNanoPackageConfigFieldLatest::Profile},
+          {"binary", StyioNanoPackageConfigFieldLatest::Binary},
+          {"source_root", StyioNanoPackageConfigFieldLatest::SourceRoot},
+      }};
+      const auto field = styio_lookup_named_enum_latest(key, kFields);
+      if (field.has_value()) {
+        return *field;
+      }
+      if (key == "manifest") {
+        return StyioNanoPackageConfigFieldLatest::Manifest;
+      }
+      return StyioNanoPackageConfigFieldLatest::None;
+    }
+    case StyioNanoPackageConfigSectionLatest::NanoLocal: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoPackageConfigFieldLatest>, 3> kFields = {{
+          {"profile", StyioNanoPackageConfigFieldLatest::Profile},
+          {"binary", StyioNanoPackageConfigFieldLatest::Binary},
+          {"source_root", StyioNanoPackageConfigFieldLatest::SourceRoot},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioNanoPackageConfigFieldLatest::None);
+    }
+    case StyioNanoPackageConfigSectionLatest::NanoCloud: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoPackageConfigFieldLatest>, 4> kFields = {{
+          {"manifest", StyioNanoPackageConfigFieldLatest::Manifest},
+          {"registry", StyioNanoPackageConfigFieldLatest::Registry},
+          {"package", StyioNanoPackageConfigFieldLatest::RegistryPackage},
+          {"version", StyioNanoPackageConfigFieldLatest::RegistryVersion},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioNanoPackageConfigFieldLatest::None);
+    }
+    case StyioNanoPackageConfigSectionLatest::Other:
+      break;
+  }
+  return StyioNanoPackageConfigFieldLatest::None;
+}
+
+static StyioNanoPublishConfigSectionLatest
+styio_parse_nano_publish_config_section_latest(const std::string& raw_section) {
+  static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoPublishConfigSectionLatest>, 2> kSections = {{
+      {"nano.publish", StyioNanoPublishConfigSectionLatest::Publish},
+      {"publish", StyioNanoPublishConfigSectionLatest::Publish},
+  }};
+  return styio_lookup_named_enum_latest(raw_section, kSections)
+    .value_or(StyioNanoPublishConfigSectionLatest::Other);
+}
+
+static StyioNanoPublishFieldLatest
+styio_parse_nano_publish_field_latest(
+  StyioNanoPublishConfigSectionLatest section,
+  const std::string& key
+) {
+  switch (section) {
+    case StyioNanoPublishConfigSectionLatest::Publish: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoPublishFieldLatest>, 6> kFields = {{
+          {"package_dir", StyioNanoPublishFieldLatest::PackageDir},
+          {"package_root", StyioNanoPublishFieldLatest::PackageDir},
+          {"registry", StyioNanoPublishFieldLatest::Registry},
+          {"package", StyioNanoPublishFieldLatest::Package},
+          {"version", StyioNanoPublishFieldLatest::Version},
+          {"channel", StyioNanoPublishFieldLatest::Channel},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioNanoPublishFieldLatest::None);
+    }
+    case StyioNanoPublishConfigSectionLatest::Other:
+      break;
+  }
+  return StyioNanoPublishFieldLatest::None;
+}
+
+static StyioNanoManifestSectionLatest
+styio_parse_nano_manifest_section_latest(const std::string& raw_section) {
+  static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoManifestSectionLatest>, 3> kSections = {{
+      {"", StyioNanoManifestSectionLatest::PackageRoot},
+      {"package", StyioNanoManifestSectionLatest::PackageRoot},
+      {"artifact", StyioNanoManifestSectionLatest::Artifact},
+  }};
+  return styio_lookup_named_enum_latest(raw_section, kSections)
+    .value_or(StyioNanoManifestSectionLatest::Other);
+}
+
+static StyioNanoManifestFieldLatest
+styio_parse_nano_manifest_field_latest(
+  StyioNanoManifestSectionLatest section,
+  const std::string& key
+) {
+  switch (section) {
+    case StyioNanoManifestSectionLatest::PackageRoot: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoManifestFieldLatest>, 7> kFields = {{
+          {"name", StyioNanoManifestFieldLatest::PackageName},
+          {"version", StyioNanoManifestFieldLatest::Version},
+          {"channel", StyioNanoManifestFieldLatest::Channel},
+          {"binary", StyioNanoManifestFieldLatest::Binary},
+          {"binary_ref", StyioNanoManifestFieldLatest::Binary},
+          {"profile", StyioNanoManifestFieldLatest::Profile},
+          {"profile_ref", StyioNanoManifestFieldLatest::Profile},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioNanoManifestFieldLatest::None);
+    }
+    case StyioNanoManifestSectionLatest::Artifact: {
+      static constexpr std::array<StyioNamedEnumSpecLatest<StyioNanoManifestFieldLatest>, 4> kFields = {{
+          {"binary", StyioNanoManifestFieldLatest::Binary},
+          {"binary_url", StyioNanoManifestFieldLatest::Binary},
+          {"profile", StyioNanoManifestFieldLatest::Profile},
+          {"profile_url", StyioNanoManifestFieldLatest::Profile},
+      }};
+      return styio_lookup_named_enum_latest(key, kFields)
+        .value_or(StyioNanoManifestFieldLatest::None);
+    }
+    case StyioNanoManifestSectionLatest::Other:
+      break;
+  }
+  return StyioNanoManifestFieldLatest::None;
+}
+
 static bool
 styio_parse_project_config_latest(
   const std::filesystem::path& config_path,
@@ -643,14 +951,11 @@ styio_parse_project_config_latest(
     const std::string key = styio_trim_copy_latest(stripped.substr(0, eq));
     const std::string raw_value = stripped.substr(eq + 1);
 
-    bool interested = false;
-    if (section.empty() || section == "runtime") {
-      interested = key == "dict_impl" || key == "dictionary_impl";
-    }
-    else if (section == "dict" || section == "dictionary") {
-      interested = key == "impl";
-    }
-    if (!interested) {
+    const auto field = styio_parse_project_config_field_latest(
+      styio_parse_project_config_section_latest(section),
+      key
+    );
+    if (field == StyioProjectConfigFieldLatest::None) {
       continue;
     }
 
@@ -1026,88 +1331,11 @@ styio_parse_nano_package_config_latest(
 
     const std::string key = styio_trim_copy_latest(stripped.substr(0, eq));
     const std::string raw_value = stripped.substr(eq + 1);
-    bool interested = false;
-
-    enum class NanoConfigField
-    {
-      None,
-      Mode,
-      OutputDir,
-      PackageName,
-      Profile,
-      Binary,
-      SourceRoot,
-      Manifest,
-      Registry,
-      RegistryPackage,
-      RegistryVersion,
-    };
-
-    NanoConfigField field = NanoConfigField::None;
-    if (section.empty() || section == "nano") {
-      if (key == "mode") {
-        interested = true;
-        field = NanoConfigField::Mode;
-      }
-      else if (key == "output_dir" || key == "output") {
-        interested = true;
-        field = NanoConfigField::OutputDir;
-      }
-      else if (key == "name" || key == "package_name") {
-        interested = true;
-        field = NanoConfigField::PackageName;
-      }
-      else if (key == "profile") {
-        interested = true;
-        field = NanoConfigField::Profile;
-      }
-      else if (key == "binary") {
-        interested = true;
-        field = NanoConfigField::Binary;
-      }
-      else if (key == "source_root") {
-        interested = true;
-        field = NanoConfigField::SourceRoot;
-      }
-      else if (key == "manifest") {
-        interested = true;
-        field = NanoConfigField::Manifest;
-      }
-    }
-    else if (section == "nano.local") {
-      if (key == "profile") {
-        interested = true;
-        field = NanoConfigField::Profile;
-      }
-      else if (key == "binary") {
-        interested = true;
-        field = NanoConfigField::Binary;
-      }
-      else if (key == "source_root") {
-        interested = true;
-        field = NanoConfigField::SourceRoot;
-      }
-    }
-    else if (section == "nano.cloud") {
-      if (key == "manifest") {
-        interested = true;
-        field = NanoConfigField::Manifest;
-      }
-      else if (key == "registry") {
-        interested = true;
-        field = NanoConfigField::Registry;
-      }
-      else if (key == "package") {
-        interested = true;
-        field = NanoConfigField::RegistryPackage;
-      }
-      else if (key == "version") {
-        interested = true;
-        field = NanoConfigField::RegistryVersion;
-      }
-    }
-
-    if (!interested) {
+    const auto field = styio_parse_nano_package_config_field_latest(
+      styio_parse_nano_package_config_section_latest(section),
+      key
+    );
+    if (field == StyioNanoPackageConfigFieldLatest::None) {
       continue;
     }
 
@@ -1120,47 +1348,47 @@ styio_parse_nano_package_config_latest(
     }
 
     switch (field) {
-      case NanoConfigField::Mode:
+      case StyioNanoPackageConfigFieldLatest::Mode:
         out_config.has_mode = true;
         out_config.mode_raw = parsed_value;
         break;
-      case NanoConfigField::OutputDir:
+      case StyioNanoPackageConfigFieldLatest::OutputDir:
         out_config.has_output_dir = true;
         out_config.output_dir_raw = parsed_value;
         break;
-      case NanoConfigField::PackageName:
+      case StyioNanoPackageConfigFieldLatest::PackageName:
         out_config.has_package_name = true;
         out_config.package_name = parsed_value;
         break;
-      case NanoConfigField::Profile:
+      case StyioNanoPackageConfigFieldLatest::Profile:
         out_config.has_profile = true;
         out_config.profile_raw = parsed_value;
         break;
-      case NanoConfigField::Binary:
+      case StyioNanoPackageConfigFieldLatest::Binary:
         out_config.has_binary = true;
         out_config.binary_raw = parsed_value;
         break;
-      case NanoConfigField::SourceRoot:
+      case StyioNanoPackageConfigFieldLatest::SourceRoot:
         out_config.has_source_root = true;
         out_config.source_root_raw = parsed_value;
         break;
-      case NanoConfigField::Manifest:
+      case StyioNanoPackageConfigFieldLatest::Manifest:
         out_config.has_manifest = true;
         out_config.manifest_raw = parsed_value;
         break;
-      case NanoConfigField::Registry:
+      case StyioNanoPackageConfigFieldLatest::Registry:
         out_config.has_registry = true;
         out_config.registry_raw = parsed_value;
         break;
-      case NanoConfigField::RegistryPackage:
+      case StyioNanoPackageConfigFieldLatest::RegistryPackage:
         out_config.has_registry_package = true;
         out_config.registry_package_raw = parsed_value;
         break;
-      case NanoConfigField::RegistryVersion:
+      case StyioNanoPackageConfigFieldLatest::RegistryVersion:
         out_config.has_registry_version = true;
         out_config.registry_version_raw = parsed_value;
         break;
-      case NanoConfigField::None:
+      case StyioNanoPackageConfigFieldLatest::None:
         break;
     }
   }
@@ -1207,43 +1435,11 @@ styio_parse_nano_publish_config_latest(
 
     const std::string key = styio_trim_copy_latest(stripped.substr(0, eq));
     const std::string raw_value = stripped.substr(eq + 1);
-    bool interested = false;
-
-    enum class NanoPublishField
-    {
-      None,
-      PackageDir,
-      Registry,
-      Package,
-      Version,
-      Channel,
-    };
-
-    NanoPublishField field = NanoPublishField::None;
-    if (section == "nano.publish" || section == "publish") {
-      if (key == "package_dir" || key == "package_root") {
-        interested = true;
-        field = NanoPublishField::PackageDir;
-      }
-      else if (key == "registry") {
-        interested = true;
-        field = NanoPublishField::Registry;
-      }
-      else if (key == "package") {
-        interested = true;
-        field = NanoPublishField::Package;
-      }
-      else if (key == "version") {
-        interested = true;
-        field = NanoPublishField::Version;
-      }
-      else if (key == "channel") {
-        interested = true;
-        field = NanoPublishField::Channel;
-      }
-    }
-
-    if (!interested) {
+    const auto field = styio_parse_nano_publish_field_latest(
+      styio_parse_nano_publish_config_section_latest(section),
+      key
+    );
+    if (field == StyioNanoPublishFieldLatest::None) {
       continue;
     }
 
@@ -1256,27 +1452,27 @@ styio_parse_nano_publish_config_latest(
     }
 
     switch (field) {
-      case NanoPublishField::PackageDir:
+      case StyioNanoPublishFieldLatest::PackageDir:
         out_config.has_package_dir = true;
         out_config.package_dir_raw = parsed_value;
         break;
-      case NanoPublishField::Registry:
+      case StyioNanoPublishFieldLatest::Registry:
         out_config.has_registry = true;
         out_config.registry_raw = parsed_value;
         break;
-      case NanoPublishField::Package:
+      case StyioNanoPublishFieldLatest::Package:
         out_config.has_registry_package = true;
         out_config.registry_package_raw = parsed_value;
         break;
-      case NanoPublishField::Version:
+      case StyioNanoPublishFieldLatest::Version:
         out_config.has_registry_version = true;
         out_config.registry_version_raw = parsed_value;
         break;
-      case NanoPublishField::Channel:
+      case StyioNanoPublishFieldLatest::Channel:
         out_config.has_channel = true;
         out_config.channel_raw = parsed_value;
         break;
-      case NanoPublishField::None:
+      case StyioNanoPublishFieldLatest::None:
         break;
     }
   }
@@ -1323,53 +1519,11 @@ styio_parse_nano_package_manifest_latest(
 
     const std::string key = styio_trim_copy_latest(stripped.substr(0, eq));
     const std::string raw_value = stripped.substr(eq + 1);
-    bool interested = false;
-
-    enum class NanoManifestField
-    {
-      None,
-      PackageName,
-      Version,
-      Channel,
-      Binary,
-      Profile,
-    };
-
-    NanoManifestField field = NanoManifestField::None;
-    if (section.empty() || section == "package") {
-      if (key == "name") {
-        interested = true;
-        field = NanoManifestField::PackageName;
-      }
-      else if (key == "version") {
-        interested = true;
-        field = NanoManifestField::Version;
-      }
-      else if (key == "channel") {
-        interested = true;
-        field = NanoManifestField::Channel;
-      }
-      else if (key == "binary" || key == "binary_ref") {
-        interested = true;
-        field = NanoManifestField::Binary;
-      }
-      else if (key == "profile" || key == "profile_ref") {
-        interested = true;
-        field = NanoManifestField::Profile;
-      }
-    }
-    else if (section == "artifact") {
-      if (key == "binary" || key == "binary_url") {
-        interested = true;
-        field = NanoManifestField::Binary;
-      }
-      else if (key == "profile" || key == "profile_url") {
-        interested = true;
-        field = NanoManifestField::Profile;
-      }
-    }
-
-    if (!interested) {
+    const auto field = styio_parse_nano_manifest_field_latest(
+      styio_parse_nano_manifest_section_latest(section),
+      key
+    );
+    if (field == StyioNanoManifestFieldLatest::None) {
       continue;
     }
 
@@ -1382,22 +1536,22 @@ styio_parse_nano_package_manifest_latest(
     }
 
     switch (field) {
-      case NanoManifestField::PackageName:
+      case StyioNanoManifestFieldLatest::PackageName:
         out_manifest.package_name = parsed_value;
         break;
-      case NanoManifestField::Version:
+      case StyioNanoManifestFieldLatest::Version:
         out_manifest.version = parsed_value;
         break;
-      case NanoManifestField::Channel:
+      case StyioNanoManifestFieldLatest::Channel:
         out_manifest.channel = parsed_value;
         break;
-      case NanoManifestField::Binary:
+      case StyioNanoManifestFieldLatest::Binary:
         out_manifest.binary_ref = parsed_value;
         break;
-      case NanoManifestField::Profile:
+      case StyioNanoManifestFieldLatest::Profile:
         out_manifest.profile_ref = parsed_value;
         break;
-      case NanoManifestField::None:
+      case StyioNanoManifestFieldLatest::None:
         break;
     }
   }
