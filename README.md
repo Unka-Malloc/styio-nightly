@@ -4,7 +4,7 @@ Styio 是一个面向流式处理、资源调度与意图表达的符号化语�
 
 当前仓库是 Styio 的主仓库，承载语言与编译器实现本体。
 
-> Status: Early stage. Styio 仍处于快速演进阶段，生态仓库多数仍在启动或补文档阶段。
+> Status: Compiler-side baseline is live, but the ecosystem is not closed yet. `styio-nightly` 已完成 compiler / source-build 双通道基线与统一文档门禁；跨仓交付、云执行、移动端与 hosted product closure 仍按 `docs/plans/Styio-Ecosystem-Delivery-Master-Plan.md` 推进。
 
 ## Styio 是什么
 

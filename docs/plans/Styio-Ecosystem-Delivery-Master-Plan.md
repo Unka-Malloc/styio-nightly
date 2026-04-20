@@ -1,8 +1,25 @@
 # Styio Ecosystem Delivery Master Plan
 
-**Purpose:** 作为 `styio-nightly`、`styio-spio`、`styio-view` 的统一交付总纲，定义权威里程碑、跨仓文档落地顺序、共享门禁与完成定义，确保三仓以同一套语言产品目标推进，而不是各自演化。
+**Purpose:** 作为 `styio-nightly`、`styio-spio`、`styio-view` 的统一交付总纲，定义权威里程碑、跨仓文档落地顺序、共享门禁与完成定义，确保三仓以同一套语言产品目标推进，而不是各自演化。当前它仍然是 active ecosystem plan，而不是已闭合的历史记录。
 
-**Last updated:** 2026-04-19
+**Last updated:** 2026-04-21
+
+**Plan status:** Active ecosystem master plan. `styio-nightly` 已完成 compiler-side dual-channel/source-build baseline 和统一 docs gate 基线，但本总纲对应的跨仓交付目标仍停留在未闭合状态，尤其是 `M4`-`M6` 的 runtime/module/mobile/cloud/hosted product closure。
+
+## 0. Current Closure Snapshot
+
+This file stays active because repo-local closure is no longer the only question. The current high-signal state is:
+
+1. `styio-nightly`
+   - Compiler-side binary/build contract baseline is complete.
+   - Source-build helper, symbol registry SSOT, and docs gates are live.
+   - Remaining work here is mostly ecosystem-facing hardening, milestone debt closure, and cross-repo coordination.
+2. `styio-spio`
+   - Package-manager and cloud-control semantics have active baselines, but live compile workflow, cloud control plane, registry hardening, and hosted execution remain open.
+3. `styio-view`
+   - Product shell and platform/toolchain plans are still active; mobile/cloud/hosted product closure is not done.
+
+Treat this plan as the answer to "is the ecosystem done?", not "is one repo locally green?".
 
 ## 1. 产品目标与完成定义
 

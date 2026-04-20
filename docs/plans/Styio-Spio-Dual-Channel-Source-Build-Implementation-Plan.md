@@ -1,8 +1,10 @@
 # Styio / Spio Dual-Channel Source-Build Implementation Plan
 
-**Purpose:** 作为 `styio-nightly` 侧适配 `styio-spio` 双通道工具链模型的总实施计划，冻结 compiler-side contract、源码分层、默认符号层收敛、source-build 入口、测试与交付阶段顺序。本文件是执行计划，不替代 `docs/for_spio/` handoff contract，也不替代 `spio` 仓库自己的 SSOT。
+**Purpose:** 作为 `styio-nightly` 侧适配 `styio-spio` 双通道工具链模型的总实施计划，冻结 compiler-side contract、源码分层、默认符号层收敛、source-build 入口、测试与交付阶段顺序。当前 repo-local baseline 已完成；本文件保留在 `docs/plans/`，用于记录完成证据和后续 hardening/生态对齐边界，而不是替代 `docs/for_spio/` handoff contract 或 `spio` 仓库自己的 SSOT。
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-21
+
+**Plan status:** Repo-local baseline completed. Remaining ecosystem-wide closure is tracked in [Styio-Ecosystem-Delivery-Master-Plan.md](./Styio-Ecosystem-Delivery-Master-Plan.md) and the owning consumer plans.
 
 ## 1. Goal
 

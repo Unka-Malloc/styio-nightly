@@ -19,6 +19,11 @@ Primary paths:
 5. `scripts/source-build-minimal.sh`
 6. Nano package tests in `tests/styio_test.cpp`
 
+Key implementation seams inside `src/StyioConfig/`:
+
+1. `CompilePlanContract.*` owns compile-plan version/build-mode parsing and validation shared by full `styio` execution paths.
+2. `SourceBuildInfo.*` owns the published `--source-build-info=json` payload and its mapping to the official `spio build` source-layout contract.
+
 Key handoff document:
 
 1. [../for_spio/Styio-Nano-Spio-Coordination.md](../for_spio/Styio-Nano-Spio-Coordination.md)
@@ -37,6 +42,7 @@ Key handoff document:
 10. Keep `scripts/source-build-minimal.sh` aligned with the published `--source-build-info=json` contract so build-channel consumers have one stable compiler-side helper entry.
 11. Prefer named enum tables and shared field-resolution helpers for project config, nano package config, nano publish config, and nano manifest parsing so new keys or aliases are added in one place instead of another `if/else` ladder in `src/main.cpp`.
 12. Treat config alias changes as contract changes when they affect source-build, nano packaging, or publish bootstrap behavior; update this runbook and the handoff docs in the same checkpoint.
+13. Keep compile-plan contract parsing and source-build metadata export in `src/StyioConfig/` as the single source of truth; `src/main.cpp` may orchestrate those paths, but it should not grow a second parser or duplicate build-mode vocabulary.
 
 ## Change Classes
 

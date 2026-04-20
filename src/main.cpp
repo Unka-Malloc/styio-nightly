@@ -41,6 +41,7 @@
 #include "StyioIR/StyioIR.hpp" /* StyioIR */
 #include "StyioParser/Parser.hpp"
 #include "StyioParser/Tokenizer.hpp"
+#include "StyioConfig/CompilePlanContract.hpp"
 #include "StyioConfig/NanoProfile.hpp"
 #include "StyioConfig/SourceBuildInfo.hpp"
 #include "StyioRuntime/HandleTable.hpp"
@@ -3392,38 +3393,7 @@ styio_probe_compile_plan_diag_dir_latest(
   const std::filesystem::path& plan_path,
   std::filesystem::path& out_diag_dir
 ) {
-  std::string plan_text;
-  std::string error_message;
-  if (!styio_read_text_file_latest(plan_path, plan_text, error_message)) {
-    return false;
-  }
-
-  llvm::Expected<llvm::json::Value> parsed = llvm::json::parse(plan_text);
-  if (!parsed) {
-    return false;
-  }
-  const llvm::json::Object* root = parsed->getAsObject();
-  if (root == nullptr) {
-    return false;
-  }
-
-  const llvm::json::Object* outputs = root->getObject("outputs");
-  if (outputs == nullptr) {
-    return false;
-  }
-
-  const auto diag_dir = outputs->getString("diag_dir");
-  if (!diag_dir.has_value() || diag_dir->empty()) {
-    return false;
-  }
-
-  const std::filesystem::path candidate{std::string(*diag_dir)};
-  if (!candidate.is_absolute()) {
-    return false;
-  }
-
-  out_diag_dir = candidate;
-  return true;
+  return styio::config::probe_compile_plan_diag_dir(plan_path, out_diag_dir);
 }
 
 static int
@@ -3468,25 +3438,7 @@ styio_emit_diagnostic(
   std::cerr << "[" << styio_category_name(category) << "] " << message << std::endl;
 }
 
-struct StyioCompilePlanRequestLatest
-{
-  std::filesystem::path plan_path;
-  int plan_version = 0;
-  std::string intent;
-  std::string build_mode = "minimal";
-  std::filesystem::path workspace_root;
-  std::string entry_package_id;
-  std::string entry_target_kind;
-  std::string entry_target_name;
-  std::filesystem::path entry_file;
-  std::filesystem::path build_root;
-  std::filesystem::path artifact_dir;
-  std::filesystem::path diag_dir;
-  std::string error_format = "text";
-  bool emit_ast = false;
-  bool emit_styio_ir = false;
-  bool emit_llvm_ir = false;
-};
+using StyioCompilePlanRequestLatest = styio::config::CompilePlanRequest;
 
 static std::string
 styio_compile_plan_unit_id_latest(const StyioCompilePlanRequestLatest& request) {
@@ -3559,117 +3511,6 @@ styio_read_text_file_latest(
   std::string& out_text,
   std::string& error_message
 );
-
-static bool
-styio_json_require_string_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  std::string& out_value,
-  std::string& error_message
-) {
-  const auto raw = obj.getString(key);
-  if (!raw.has_value() || raw->empty()) {
-    error_message = std::string("compile-plan is missing required string field: ") + key;
-    return false;
-  }
-  out_value = std::string(*raw);
-  return true;
-}
-
-static bool
-styio_json_optional_string_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  std::string& out_value
-) {
-  const auto raw = obj.getString(key);
-  if (!raw.has_value() || raw->empty()) {
-    return false;
-  }
-  out_value = std::string(*raw);
-  return true;
-}
-
-static bool
-styio_json_require_integer_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  std::int64_t& out_value,
-  std::string& error_message
-) {
-  const auto raw = obj.getInteger(key);
-  if (!raw.has_value()) {
-    error_message = std::string("compile-plan is missing required integer field: ") + key;
-    return false;
-  }
-  out_value = *raw;
-  return true;
-}
-
-static bool
-styio_json_require_bool_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  bool& out_value,
-  std::string& error_message
-) {
-  auto raw = obj.getBoolean(key);
-  if (!raw.has_value()) {
-    error_message = std::string("compile-plan is missing required boolean field: ") + key;
-    return false;
-  }
-  out_value = *raw;
-  return true;
-}
-
-static bool
-styio_json_require_object_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  const llvm::json::Object*& out_value,
-  std::string& error_message
-) {
-  out_value = obj.getObject(key);
-  if (out_value == nullptr) {
-    error_message = std::string("compile-plan is missing required object field: ") + key;
-    return false;
-  }
-  return true;
-}
-
-static bool
-styio_json_require_array_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  const llvm::json::Array*& out_value,
-  std::string& error_message
-) {
-  out_value = obj.getArray(key);
-  if (out_value == nullptr) {
-    error_message = std::string("compile-plan is missing required array field: ") + key;
-    return false;
-  }
-  return true;
-}
-
-static bool
-styio_compile_plan_require_absolute_path_latest(
-  const llvm::json::Object& obj,
-  const char* key,
-  std::filesystem::path& out_value,
-  std::string& error_message
-) {
-  std::string raw_value;
-  if (!styio_json_require_string_latest(obj, key, raw_value, error_message)) {
-    return false;
-  }
-  out_value = std::filesystem::path(raw_value);
-  if (!out_value.is_absolute()) {
-    error_message = std::string("compile-plan path must be absolute: ") + key;
-    return false;
-  }
-  return true;
-}
 
 static std::string
 styio_compile_plan_artifact_stem_latest(const StyioCompilePlanRequestLatest& request) {
@@ -3750,129 +3591,6 @@ styio_write_compile_plan_receipt_latest(
     request.build_root / "receipt.json",
     receipt.str(),
     error_message);
-}
-
-static bool
-styio_parse_compile_plan_latest(
-  const std::filesystem::path& plan_path,
-  StyioCompilePlanRequestLatest& out_request,
-  std::string& error_message
-) {
-  std::string plan_text;
-  if (!styio_read_text_file_latest(plan_path, plan_text, error_message)) {
-    return false;
-  }
-
-  llvm::Expected<llvm::json::Value> parsed = llvm::json::parse(plan_text);
-  if (!parsed) {
-    error_message = "compile-plan is not valid JSON: " + llvm::toString(parsed.takeError());
-    return false;
-  }
-  const llvm::json::Object* root = parsed->getAsObject();
-  if (root == nullptr) {
-    error_message = "compile-plan must be a JSON object";
-    return false;
-  }
-
-  const llvm::json::Object* generated_by = nullptr;
-  const llvm::json::Object* entry = nullptr;
-  const llvm::json::Object* toolchain = nullptr;
-  const llvm::json::Object* profile = nullptr;
-  const llvm::json::Object* resolution = nullptr;
-  const llvm::json::Object* outputs = nullptr;
-  const llvm::json::Object* emit = nullptr;
-  const llvm::json::Array* packages = nullptr;
-  std::int64_t plan_version = 0;
-
-  if (!styio_json_require_integer_latest(*root, "plan_version", plan_version, error_message)
-      || !styio_json_require_object_latest(*root, "generated_by", generated_by, error_message)
-      || !styio_json_require_string_latest(*root, "intent", out_request.intent, error_message)
-      || !styio_compile_plan_require_absolute_path_latest(*root, "workspace_root", out_request.workspace_root, error_message)
-      || !styio_json_require_object_latest(*root, "entry", entry, error_message)
-      || !styio_json_require_object_latest(*root, "toolchain", toolchain, error_message)
-      || !styio_json_require_object_latest(*root, "profile", profile, error_message)
-      || !styio_json_require_array_latest(*root, "packages", packages, error_message)
-      || !styio_json_require_object_latest(*root, "resolution", resolution, error_message)
-      || !styio_json_require_object_latest(*root, "outputs", outputs, error_message)
-      || !styio_json_require_object_latest(*root, "emit", emit, error_message)) {
-    return false;
-  }
-
-  (void)toolchain;
-  (void)profile;
-  (void)resolution;
-
-  if (plan_version != 1) {
-    error_message = "unsupported compile-plan version: " + std::to_string(plan_version);
-    return false;
-  }
-  out_request.plan_version = static_cast<int>(plan_version);
-  out_request.plan_path = plan_path;
-
-  std::string generated_by_tool;
-  std::string generated_by_version;
-  std::string profile_name;
-  if (!styio_json_require_string_latest(*generated_by, "tool", generated_by_tool, error_message)
-      || !styio_json_require_string_latest(*generated_by, "version", generated_by_version, error_message)
-      || !styio_json_require_string_latest(*profile, "name", profile_name, error_message)) {
-    return false;
-  }
-  (void)generated_by_version;
-  (void)profile_name;
-  if (generated_by_tool != "spio") {
-    error_message = "compile-plan generated_by.tool must equal \"spio\"";
-    return false;
-  }
-
-  styio_json_optional_string_latest(*profile, "build_mode", out_request.build_mode);
-  if (out_request.build_mode != "minimal") {
-    error_message = "unsupported compile-plan profile.build_mode: " + out_request.build_mode;
-    return false;
-  }
-
-  if (!(out_request.intent == "build"
-        || out_request.intent == "check"
-        || out_request.intent == "run"
-        || out_request.intent == "test")) {
-    error_message = "unsupported compile-plan intent: " + out_request.intent;
-    return false;
-  }
-  if (packages->empty()) {
-    error_message = "compile-plan packages array must not be empty";
-    return false;
-  }
-
-  if (!styio_json_require_string_latest(*entry, "package_id", out_request.entry_package_id, error_message)
-      || !styio_json_require_string_latest(*entry, "target_kind", out_request.entry_target_kind, error_message)
-      || !styio_json_require_string_latest(*entry, "target_name", out_request.entry_target_name, error_message)
-      || !styio_compile_plan_require_absolute_path_latest(*entry, "file", out_request.entry_file, error_message)) {
-    return false;
-  }
-  if (!(out_request.entry_target_kind == "lib"
-        || out_request.entry_target_kind == "bin"
-        || out_request.entry_target_kind == "test")) {
-    error_message = "unsupported compile-plan entry.target_kind: " + out_request.entry_target_kind;
-    return false;
-  }
-
-  if (!styio_compile_plan_require_absolute_path_latest(*outputs, "build_root", out_request.build_root, error_message)
-      || !styio_compile_plan_require_absolute_path_latest(*outputs, "artifact_dir", out_request.artifact_dir, error_message)
-      || !styio_compile_plan_require_absolute_path_latest(*outputs, "diag_dir", out_request.diag_dir, error_message)) {
-    return false;
-  }
-
-  if (!styio_json_require_string_latest(*emit, "error_format", out_request.error_format, error_message)
-      || !styio_json_require_bool_latest(*emit, "ast", out_request.emit_ast, error_message)
-      || !styio_json_require_bool_latest(*emit, "styio_ir", out_request.emit_styio_ir, error_message)
-      || !styio_json_require_bool_latest(*emit, "llvm_ir", out_request.emit_llvm_ir, error_message)) {
-    return false;
-  }
-  if (!(out_request.error_format == "text" || out_request.error_format == "jsonl")) {
-    error_message = "unsupported compile-plan emit.error_format: " + out_request.error_format;
-    return false;
-  }
-
-  return true;
 }
 
 static void
@@ -4277,7 +3995,7 @@ main(
     }
     StyioCompilePlanRequestLatest parsed_request;
     std::string compile_plan_error;
-    if (!styio_parse_compile_plan_latest(
+    if (!styio::config::parse_compile_plan(
           compile_plan_path,
           parsed_request,
           compile_plan_error)) {
@@ -4500,7 +4218,7 @@ main(
               << "\",\"build_mode\":\""
               << styio_json_escape(
                    request != nullptr ? request->build_mode : std::string("minimal"))
-              << "\",\"file\":\""
+               << "\",\"file\":\""
               << styio_json_escape(file_path != nullptr ? *file_path : "")
               << "\",\"executed\":"
               << ((executed != nullptr && *executed) ? "true" : "false");

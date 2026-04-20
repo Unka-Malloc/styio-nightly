@@ -2,7 +2,7 @@
 
 **Purpose:** Define the boundary of the `docs/` tree and point readers to the generated inventory in [INDEX.md](./INDEX.md); detailed file listings live in directory-level `INDEX.md` files, not here.
 
-**Last updated:** 2026-04-19
+**Last updated:** 2026-04-21
 
 ## Tree Contract
 
@@ -33,6 +33,7 @@
 11. IDE integration docs: [for-ide/INDEX.md](./for-ide/INDEX.md)
 12. Archived provenance: [archive/INDEX.md](./archive/INDEX.md)
 13. File-governance alignment plan: [plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md](./plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md)
+14. Plans scope and status rules: [plans/README.md](./plans/README.md)
 
 ## Default Read Order
 

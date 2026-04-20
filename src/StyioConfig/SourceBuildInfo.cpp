@@ -1,3 +1,4 @@
+#include "CompilePlanContract.hpp"
 #include "SourceBuildInfo.hpp"
 
 #include "StyioParser/SymbolRegistry.hpp"
@@ -118,12 +119,12 @@ source_build_info_json(const SourceBuildInfoOptions& options) {
     {"edition_max", options.edition_max},
     {"official_source_origin", default_source_origin()},
     {"source_channels", source_channel_entries()},
-    {"supported_build_modes", llvm::json::Array{"minimal"}},
+    {"supported_build_modes", llvm::json::Array{std::string(default_build_mode_name())}},
     {"compile_plan_profile_contract", llvm::json::Object{
       {"path", "profile.build_mode"},
-      {"default_build_mode", "minimal"},
-      {"accepted_build_modes", llvm::json::Array{"minimal"}},
-      {"legacy_missing_build_mode_defaults_to", "minimal"},
+      {"default_build_mode", std::string(default_build_mode_name())},
+      {"accepted_build_modes", llvm::json::Array{std::string(default_build_mode_name())}},
+      {"legacy_missing_build_mode_defaults_to", std::string(default_build_mode_name())},
     }},
     {"source_overrides", llvm::json::Object{
       {"source_root", true},

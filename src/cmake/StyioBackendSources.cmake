@@ -16,6 +16,7 @@ set(STYIO_TESTING_SUPPORT_SOURCES
 )
 
 set(STYIO_CONTRACT_SOURCES
+  StyioConfig/CompilePlanContract.cpp
   StyioConfig/SourceBuildInfo.cpp
 )
 
