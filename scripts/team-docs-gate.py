@@ -65,6 +65,7 @@ TEAM_RULES: tuple[TeamRule, ...] = (
             "src/StyioConfig/",
             "configs/",
             "scripts/gen-styio-nano-profile.py",
+            "scripts/source-build-minimal.sh",
             "docs/for_spio/",
         ),
     ),

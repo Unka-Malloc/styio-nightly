@@ -56,6 +56,12 @@ Build:
 cmake --build build -j4
 ```
 
+Stable full-compiler source-build helper:
+
+```bash
+./scripts/source-build-minimal.sh
+```
+
 Run milestone and pipeline tests:
 
 ```bash

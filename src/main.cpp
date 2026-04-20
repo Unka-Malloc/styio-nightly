@@ -3319,6 +3319,7 @@ struct StyioCompilePlanRequestLatest
   std::filesystem::path plan_path;
   int plan_version = 0;
   std::string intent;
+  std::string build_mode = "minimal";
   std::filesystem::path workspace_root;
   std::string entry_package_id;
   std::string entry_target_kind;
@@ -3373,6 +3374,8 @@ styio_render_compile_plan_unit_payload_latest(
           << styio_json_escape(request.entry_target_name)
           << "\",\"intent\":\""
           << styio_json_escape(intent)
+          << "\",\"build_mode\":\""
+          << styio_json_escape(request.build_mode)
           << "\",\"file\":\""
           << styio_json_escape(request.entry_file.string())
           << "\"";
@@ -3413,6 +3416,20 @@ styio_json_require_string_latest(
   const auto raw = obj.getString(key);
   if (!raw.has_value() || raw->empty()) {
     error_message = std::string("compile-plan is missing required string field: ") + key;
+    return false;
+  }
+  out_value = std::string(*raw);
+  return true;
+}
+
+static bool
+styio_json_optional_string_latest(
+  const llvm::json::Object& obj,
+  const char* key,
+  std::string& out_value
+) {
+  const auto raw = obj.getString(key);
+  if (!raw.has_value() || raw->empty()) {
     return false;
   }
   out_value = std::string(*raw);
@@ -3550,6 +3567,7 @@ styio_write_compile_plan_receipt_latest(
           << ",\"channel\":\"" << styio_json_escape(STYIO_RELEASE_CHANNEL) << "\""
           << ",\"plan_version\":" << request.plan_version
           << ",\"intent\":\"" << styio_json_escape(request.intent) << "\""
+          << ",\"build_mode\":\"" << styio_json_escape(request.build_mode) << "\""
           << ",\"session_id\":\"" << styio_json_escape(session_id) << "\""
           << ",\"executed\":" << (executed ? "true" : "false")
           << ",\"wall_time_ms\":" << wall_time_ms
@@ -3639,13 +3657,22 @@ styio_parse_compile_plan_latest(
 
   std::string generated_by_tool;
   std::string generated_by_version;
+  std::string profile_name;
   if (!styio_json_require_string_latest(*generated_by, "tool", generated_by_tool, error_message)
-      || !styio_json_require_string_latest(*generated_by, "version", generated_by_version, error_message)) {
+      || !styio_json_require_string_latest(*generated_by, "version", generated_by_version, error_message)
+      || !styio_json_require_string_latest(*profile, "name", profile_name, error_message)) {
     return false;
   }
   (void)generated_by_version;
+  (void)profile_name;
   if (generated_by_tool != "spio") {
     error_message = "compile-plan generated_by.tool must equal \"spio\"";
+    return false;
+  }
+
+  styio_json_optional_string_latest(*profile, "build_mode", out_request.build_mode);
+  if (out_request.build_mode != "minimal") {
+    error_message = "unsupported compile-plan profile.build_mode: " + out_request.build_mode;
     return false;
   }
 
@@ -4268,6 +4295,7 @@ main(
     {
       std::ostringstream payload;
       payload << "{\"intent\":\"" << styio_json_escape(compile_plan_request->intent)
+              << "\",\"build_mode\":\"" << styio_json_escape(compile_plan_request->build_mode)
               << "\",\"file\":\"" << styio_json_escape(fpath) << "\"}";
       styio_emit_runtime_event_latest(
         "compile.started",
@@ -4315,6 +4343,9 @@ main(
       std::ostringstream payload;
       payload << "{\"intent\":\""
               << styio_json_escape(intent != nullptr ? *intent : "")
+              << "\",\"build_mode\":\""
+              << styio_json_escape(
+                   request != nullptr ? request->build_mode : std::string("minimal"))
               << "\",\"file\":\""
               << styio_json_escape(file_path != nullptr ? *file_path : "")
               << "\",\"executed\":"

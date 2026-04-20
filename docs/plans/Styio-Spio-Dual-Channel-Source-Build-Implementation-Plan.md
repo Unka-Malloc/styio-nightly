@@ -144,6 +144,19 @@ Build channel 新增并冻结：
 2. full compiler 的 source-build contract 不再依赖 `main.cpp` 内散落逻辑
 3. `styio-nano` 不强制链接 source-build-only contract implementation
 
+当前状态：
+
+- **Baseline completed**
+
+已落地证据：
+
+1. `src/CMakeLists.txt` 现在显式导出：
+   - `styio_symbol_core`
+   - `styio_runtime_core`
+   - `styio_cli_contract_core`
+2. `styio` full compiler 链接 `styio_cli_contract_core`
+3. `styio-nano` 不再链接 source-build contract implementation
+
 ### Stage 3: Official Source-Build Entry
 
 目标：
@@ -157,6 +170,16 @@ Build channel 新增并冻结：
 1. `spio build` 能基于官方源码树构出本地 compiler
 2. source-build contract 不要求 `spio` 读取 `styio` 内部实现细节
 3. source-build 流程具备最小回归覆盖
+
+当前状态：
+
+- **Baseline completed**
+
+已落地证据：
+
+1. compiler-side helper 已固定为 `scripts/source-build-minimal.sh`
+2. `--source-build-info=json` 现在导出 helper script 与 target metadata
+3. `tests/styio_test.cpp` 已覆盖 `--source-build-info=json` 与 helper `--help` smoke path
 
 ### Stage 4: Minimal Build Semantics
 
@@ -172,6 +195,20 @@ Build channel 新增并冻结：
 2. 冗余函数不再无条件进入最终包
 3. 默认符号层可作为受控 override surface 工作
 
+当前状态：
+
+- **Baseline completed**
+
+已落地证据：
+
+1. `styio --compile-plan <path>` 现在显式消费 `profile.build_mode`
+2. compile-plan `profile.build_mode` 缺失时回落到 `minimal`，显式值当前只允许 `minimal`
+3. `receipt.json` 与 compile-plan runtime events 现在回显 `build_mode`
+4. `tests/styio_test.cpp` 已覆盖：
+   - `minimal` end-to-end receipt/runtime assertions
+   - 非法 `profile.build_mode` 的 CLI/diag failure path
+5. 默认符号层的官方 override surface 继续固定在 `src/StyioParser/SymbolRegistry.cpp`，由 source-build 通道通过 `source_root`/`source_rev` 控制源码级覆盖
+
 ### Stage 5: Hardening And Cutover
 
 目标：
@@ -185,6 +222,16 @@ Build channel 新增并冻结：
 1. docs gate、team-docs gate、ecosystem CLI doc gate 都能长期保护 dual-channel contract
 2. `spio` 侧 source-build 文档与 `styio` owner 文档无漂移
 3. `binary` / `build` 行为都具备明确的 regression evidence
+
+当前状态：
+
+- **Baseline completed**
+
+已落地证据：
+
+1. `scripts/ecosystem-cli-doc-gate.py`、`scripts/team-docs-gate.py` 和 `./scripts/docs-gate.sh` 已把 dual-channel source-build contract 纳入常规门禁
+2. `docs/for_spio/Styio-Nano-Spio-Coordination.md` 与 `docs/plans/Styio-Ecosystem-CLI-Contract-Matrix.md` 已对齐 helper、source origin、channel mapping、build-mode contract
+3. `tests/styio_test.cpp` 现在同时覆盖 source-build metadata、helper smoke path、compile-plan `build_mode` 成功路径和失败路径
 
 ## 6. Workstreams
 

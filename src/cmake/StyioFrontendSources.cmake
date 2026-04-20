@@ -1,9 +1,12 @@
+set(STYIO_SYMBOL_SOURCES
+  StyioParser/SymbolRegistry.cpp
+)
+
 set(STYIO_FRONTEND_FOUNDATION_SOURCES
   StyioToken/Token.cpp
   StyioUnicode/Unicode.cpp
   StyioParser/Parser.cpp
   StyioParser/ParserLookahead.cpp
-  StyioParser/SymbolRegistry.cpp
   StyioParser/NewParserExpr.cpp
   StyioParser/Tokenizer.cpp
 )

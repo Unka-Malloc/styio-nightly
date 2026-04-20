@@ -33,6 +33,7 @@ controlled_components() {
   llvm::json::Array components;
   components.push_back(llvm::json::Object{
     {"id", "compiler_core"},
+    {"cmake_targets", llvm::json::Array{"styio_frontend_core", "styio_core"}},
     {"paths", component_paths({
       "src/StyioToken/",
       "src/StyioUnicode/",
@@ -50,6 +51,7 @@ controlled_components() {
   });
   components.push_back(llvm::json::Object{
     {"id", "std_symbols"},
+    {"cmake_targets", llvm::json::Array{"styio_symbol_core"}},
     {"paths", component_paths({
       "src/StyioParser/SymbolRegistry.hpp",
       "src/StyioParser/SymbolRegistry.cpp",
@@ -58,6 +60,7 @@ controlled_components() {
   });
   components.push_back(llvm::json::Object{
     {"id", "runtime"},
+    {"cmake_targets", llvm::json::Array{"styio_runtime_core"}},
     {"paths", component_paths({
       "src/StyioRuntime/",
       "src/StyioExtern/",
@@ -66,6 +69,7 @@ controlled_components() {
   });
   components.push_back(llvm::json::Object{
     {"id", "macro_prelude"},
+    {"cmake_targets", llvm::json::Array{"styio_symbol_core"}},
     {"paths", component_paths({
       "src/StyioParser/SymbolRegistry.hpp",
       "src/StyioParser/SymbolRegistry.cpp",
@@ -115,12 +119,20 @@ source_build_info_json(const SourceBuildInfoOptions& options) {
     {"official_source_origin", default_source_origin()},
     {"source_channels", source_channel_entries()},
     {"supported_build_modes", llvm::json::Array{"minimal"}},
+    {"compile_plan_profile_contract", llvm::json::Object{
+      {"path", "profile.build_mode"},
+      {"default_build_mode", "minimal"},
+      {"accepted_build_modes", llvm::json::Array{"minimal"}},
+      {"legacy_missing_build_mode_defaults_to", "minimal"},
+    }},
     {"source_overrides", llvm::json::Object{
       {"source_root", true},
       {"source_rev", true},
     }},
     {"public_build_entrypoints", llvm::json::Object{
       {"cmake_root", "CMakeLists.txt"},
+      {"helper_script", "scripts/source-build-minimal.sh"},
+      {"cmake_target", "styio"},
       {"compiler_binary", "styio"},
       {"compile_plan_consumer", "--compile-plan"},
     }},

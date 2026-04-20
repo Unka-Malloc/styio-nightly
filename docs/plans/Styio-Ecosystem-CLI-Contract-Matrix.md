@@ -84,8 +84,10 @@ styio --source-build-info=json
 2. `stable` 和 `nightly` 通道映射到同名源码分支
 3. official controlled source graph 当前冻结为 `compiler_core / std_symbols / runtime / macro_prelude`
 4. 当前唯一官方 build mode 是 `minimal`
-5. default symbol layer 的单一真相源当前是 `src/StyioParser/SymbolRegistry.cpp`
-6. `--source-build-info=json` 只描述 source-build contract，不替代 binary 通道的 `--machine-info=json`
+5. current helper entry is `scripts/source-build-minimal.sh`
+6. compile-plan `profile.build_mode` 缺失时默认回落到 `minimal`，显式值当前也只允许 `minimal`
+7. default symbol layer 的单一真相源当前是 `src/StyioParser/SymbolRegistry.cpp`
+8. `--source-build-info=json` 只描述 source-build contract，不替代 binary 通道的 `--machine-info=json`
 
 Owner / consumer docs:
 

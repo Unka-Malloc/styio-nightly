@@ -109,6 +109,7 @@ CONTRACT_RULES: tuple[ContractRule, ...] = (
                     "`https://github.com/eBioRing/Styio.git`",
                     "`compiler_core / std_symbols / runtime / macro_prelude`",
                     "`minimal`",
+                    "`scripts/source-build-minimal.sh`",
                     "`src/StyioParser/SymbolRegistry.cpp`",
                 ),
             ),

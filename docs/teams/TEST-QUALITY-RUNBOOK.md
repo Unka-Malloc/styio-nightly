@@ -31,6 +31,7 @@ Primary paths:
 6. Treat compile-plan negative-path coverage and machine-readable diagnostics as contract evidence, not optional smoke coverage.
 7. When compile-plan artifacts grow, add assertions for receipt fields and auxiliary artifacts such as `runtime-events.jsonl`, not just exit codes.
 8. When compiler handoff contracts grow, add or update regression coverage for both `--machine-info=json` and `--source-build-info=json` so `spio`-facing metadata cannot drift silently.
+9. When the compiler-side source-build helper changes, keep a lightweight regression on `scripts/source-build-minimal.sh --help` or an equivalent smoke path so the published helper entry does not silently rot.
 
 ## Change Classes
 

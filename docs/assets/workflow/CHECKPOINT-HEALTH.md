@@ -8,6 +8,8 @@
 
 `scripts/checkpoint-health.sh` is the inner health gate for this repository. It owns configure/build steps, the compiler test labels, and repo-specific parser/security/soak verification needed at checkpoint scope.
 
+When `--asan-build-dir` points at a missing directory, the script now bootstraps a RelWithDebInfo ASan/UBSan configure in that location before running the sanitizer leg.
+
 ## Command
 
 Default checkpoint health:

@@ -68,11 +68,25 @@
   - `macro_prelude`
 - 官方 build mode：
   - `minimal`
+- 官方 helper 入口：
+  - `scripts/source-build-minimal.sh`
+- compile-plan `profile.build_mode`：
+  - 缺失时按 `minimal` 处理，兼容旧的 v1 plan
+  - 当前只接受显式值 `minimal`
+  - 其它值必须由 compiler-side compile-plan consumer 直接拒绝
 - 允许的 override：
   - `source_root`
   - `source_rev`
 
 `source-build-info` 的职责不是替代 `machine-info`，而是描述 `spio build` 可以依赖的官方源码布局与 override 边界。
+
+当前 helper 约定是：
+
+- `scripts/source-build-minimal.sh`
+  - 使用当前仓库根目录作为 `-S`
+  - 默认输出到 `build-source-minimal/`
+  - 只构建 full `styio` compiler
+  - 显式关闭 `STYIO_BUILD_NANO`
 
 ### 2.3 默认符号层 contract
 

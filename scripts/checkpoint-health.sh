@@ -40,6 +40,20 @@ configure_build_dir_latest() {
   printf '%s\n' "$fallback"
 }
 
+configure_asan_build_dir_latest() {
+  local requested="$1"
+  if [[ -f "$requested/CMakeCache.txt" ]]; then
+    printf '%s\n' "$requested"
+    return 0
+  fi
+
+  cmake -S . -B "$requested" \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_C_FLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer' \
+    -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined -fno-omit-frame-pointer' >&2
+  printf '%s\n' "$requested"
+}
+
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
@@ -152,6 +166,7 @@ elif [[ "$RUN_FUZZ" == "auto" ]]; then
 fi
 
 if [[ "$RUN_ASAN" -eq 1 ]]; then
+  ASAN_BUILD_DIR="$(configure_asan_build_dir_latest "$ASAN_BUILD_DIR")"
   echo "[checkpoint-health] asan build dir: ${ASAN_BUILD_DIR}"
   cmake --build "$ASAN_BUILD_DIR" --target styio_test -j8
   ASAN_OPTIONS='detect_leaks=0:halt_on_error=1:abort_on_error=1' \

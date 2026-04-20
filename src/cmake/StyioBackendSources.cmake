@@ -1,3 +1,7 @@
+set(STYIO_RUNTIME_SUPPORT_SOURCES
+  StyioExtern/ExternLib.cpp
+)
+
 set(STYIO_BACKEND_SOURCES
   StyioCodeGen/CodeGen.cpp
   StyioCodeGen/GetTypeG.cpp
@@ -5,7 +9,6 @@ set(STYIO_BACKEND_SOURCES
   StyioCodeGen/CodeGenPulse.cpp
   StyioCodeGen/GetTypeIO.cpp
   StyioCodeGen/CodeGenIO.cpp
-  StyioExtern/ExternLib.cpp
 )
 
 set(STYIO_TESTING_SUPPORT_SOURCES
@@ -17,7 +20,6 @@ set(STYIO_CONTRACT_SOURCES
 )
 
 set(STYIO_CORE_SOURCES
-  ${STYIO_CONTRACT_SOURCES}
   ${STYIO_BACKEND_SOURCES}
   ${STYIO_TESTING_SUPPORT_SOURCES}
 )

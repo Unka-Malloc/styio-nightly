@@ -16,7 +16,8 @@ Primary paths:
 2. `src/StyioConfig/`
 3. `configs/`
 4. `scripts/gen-styio-nano-profile.py`
-5. Nano package tests in `tests/styio_test.cpp`
+5. `scripts/source-build-minimal.sh`
+6. Nano package tests in `tests/styio_test.cpp`
 
 Key handoff document:
 
@@ -33,6 +34,7 @@ Key handoff document:
 7. When compile-plan, source-build-info, or diagnostics behavior changes, keep the `styio-spio` / `styio-view` coordinator mirror and handoff docs aligned in the same checkpoint.
 8. When runtime event artifacts change, keep `supported_contracts.runtime_events`, `feature_flags.runtime_event_stream`, `receipt.json`, and `build_root/runtime-events.jsonl` aligned in the same checkpoint.
 9. Keep generated nano subset build manifests aligned with the repository compatibility floor and the shared `styio-nightly` / `styio-spio` toolchain baseline when `src/main.cpp` emits CMake scaffolding.
+10. Keep `scripts/source-build-minimal.sh` aligned with the published `--source-build-info=json` contract so build-channel consumers have one stable compiler-side helper entry.
 
 ## Change Classes
 
