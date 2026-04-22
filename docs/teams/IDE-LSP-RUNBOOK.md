@@ -14,7 +14,7 @@ Primary paths:
 
 1. `src/StyioIDE/`
 2. `src/StyioLSP/`
-3. `docs/for-ide/`
+3. `docs/external/for-ide/`
 4. `tests/ide/styio_ide_test.cpp`
 
 Build and test targets:
@@ -25,21 +25,21 @@ Build and test targets:
 
 ## Daily Workflow
 
-1. Start from [../for-ide/README.md](../for-ide/README.md), then the relevant `BUILD`, `CXX-API`, `LSP`, `TREE-SITTER`, or `TESTING` page.
+1. Start from [../external/for-ide/README.md](../external/for-ide/README.md), then the relevant `BUILD`, `CXX-API`, `LSP`, `TREE-SITTER`, or `TESTING` page.
 2. Decide whether the change is syntax-only, semantic bridge, HIR/SemDB, service API, or LSP boundary.
 3. Keep UTF-16 LSP positions at the server boundary and UTF-8 byte offsets inside IDE core.
 4. Preserve recovery behavior: malformed statements should not unnecessarily erase later useful IDE facts.
-5. Keep `docs/for-ide/BUILD.md` scoped to IDE/LSP targets; repository-wide bootstrap and common compiler commands belong in [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
-6. Update `docs/for-ide/` when public host behavior changes.
-7. When IDE build docs mention compiler prerequisites, reflect the shared repository baseline instead of creating a second LLVM/CMake/Python version matrix under `docs/for-ide/`.
-8. Tree-sitter maintenance instructions in `docs/for-ide/BUILD.md` must keep using the repository-standard Node.js `v24.15.0` LTS line instead of a floating `stable` or distro-default Node release.
+5. Keep `docs/external/for-ide/BUILD.md` scoped to IDE/LSP targets; repository-wide bootstrap and common compiler commands belong in [../BUILD-AND-DEV-ENV.md](../BUILD-AND-DEV-ENV.md).
+6. Update `docs/external/for-ide/` when public host behavior changes.
+7. When IDE build docs mention compiler prerequisites, reflect the shared repository baseline instead of creating a second LLVM/CMake/Python version matrix under `docs/external/for-ide/`.
+8. Tree-sitter maintenance instructions in `docs/external/for-ide/BUILD.md` must keep using the repository-standard Node.js `v24.15.0` LTS line instead of a floating `stable` or distro-default Node release.
 9. Keep builtin/default-symbol completions sourced from the shared compiler-owned symbol registry under `src/StyioParser/`; do not reintroduce a private IDE-only builtin or keyword table.
 10. Preserve the M18 runtime scheduling contract: request-loop drains are budgeted, foreground work yields over queued background reindexing, and explicit idle slices drain semantic diagnostics before background work.
 
 ## Change Classes
 
 1. Small: completion ranking, DTO cleanup, or local VFS/Syntax helper fix. Run IDE unit tests.
-2. Medium: public C++ API, incremental edit application, HIR identity, SemDB cache, or LSP method behavior. Update tests and `docs/for-ide/`.
+2. Medium: public C++ API, incremental edit application, HIR identity, SemDB cache, or LSP method behavior. Update tests and `docs/external/for-ide/`.
 3. High: document sync contract, semantic cache model, workspace index behavior, or LSP surface expansion. Use checkpoint workflow and coordinate docs plus tests.
 
 ## Required Gates

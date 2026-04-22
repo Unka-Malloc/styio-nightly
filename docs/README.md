@@ -11,8 +11,8 @@
 3. Team daily-work runbooks live in `docs/teams/`.
 4. Review findings and open conflicts live in `docs/review/`.
 5. Plans and migration drafts live in `docs/plans/`.
-6. Cross-repository handoff notes intended for `styio-spio` live in `docs/for_spio/`.
-7. IDE integration, embedding, and LSP usage material lives in `docs/for-ide/`.
+6. Cross-repository handoff notes intended for `styio-spio` live in `docs/external/for-spio/`.
+7. IDE integration, embedding, and LSP usage material lives in `docs/external/for-ide/`.
 8. Reusable workflows and templates live in `docs/assets/`.
 9. Compressed active summaries live in `docs/rollups/`.
 10. Archived raw provenance lives in `docs/archive/`.
@@ -30,7 +30,7 @@
 8. Current-state rollups: [rollups/INDEX.md](./rollups/INDEX.md)
 9. Workflow assets: [assets/INDEX.md](./assets/INDEX.md)
 10. Design SSOT: [design/INDEX.md](./design/INDEX.md)
-11. IDE integration docs: [for-ide/INDEX.md](./for-ide/INDEX.md)
+11. IDE integration docs: [external/for-ide/INDEX.md](./external/for-ide/INDEX.md)
 12. Archived provenance: [archive/INDEX.md](./archive/INDEX.md)
 13. File-governance alignment plan: [plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md](./plans/Styio-Ecosystem-File-Governance-Alignment-Plan.md)
 14. Plans scope and status rules: [plans/README.md](./plans/README.md)

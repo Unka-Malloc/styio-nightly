@@ -16,8 +16,8 @@
 For implementation sequencing and non-acceptance details, see:
 
 - [`../../plans/IDE-Incremental-Edits-and-Semantic-Query-Cache-Implementation-Plan.md`](../../plans/IDE-Incremental-Edits-and-Semantic-Query-Cache-Implementation-Plan.md)
-- [`../../for-ide/TREE-SITTER.md`](../../for-ide/TREE-SITTER.md)
-- [`../../for-ide/LSP.md`](../../for-ide/LSP.md)
+- [`../../external/for-ide/TREE-SITTER.md`](../../external/for-ide/TREE-SITTER.md)
+- [`../../external/for-ide/LSP.md`](../../external/for-ide/LSP.md)
 
 This milestone freezes the following boundary:
 
@@ -145,7 +145,7 @@ Required existing tests:
 
 ### Task 11.6 — Update docs
 **Role:** Doc Agent  
-**Files:** `docs/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
+**Files:** `docs/external/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
 **Action:** Record the multi-edit data flow and verification commands.  
 **Verify:** `python3 scripts/docs-audit.py` passes.
 

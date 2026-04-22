@@ -26,7 +26,7 @@ Key implementation seams inside `src/StyioConfig/`:
 
 Key handoff document:
 
-1. [../for_spio/Styio-Nano-Spio-Coordination.md](../for_spio/Styio-Nano-Spio-Coordination.md)
+1. [../external/for-spio/Styio-Nano-Spio-Coordination.md](../external/for-spio/Styio-Nano-Spio-Coordination.md)
 
 ## Daily Workflow
 
@@ -73,7 +73,7 @@ python3 scripts/docs-audit.py
 
 1. Codegen / Runtime must review runtime capability, extern, or execution behavior surfaced through CLI.
 2. Test Quality must review new CLI/nano tests and package workflow regression coverage.
-3. Docs / Ecosystem must review [../for_spio/Styio-Nano-Spio-Coordination.md](../for_spio/Styio-Nano-Spio-Coordination.md) changes.
+3. Docs / Ecosystem must review [../external/for-spio/Styio-Nano-Spio-Coordination.md](../external/for-spio/Styio-Nano-Spio-Coordination.md) changes.
 4. Frontend or Sema / IR must review CLI switches that select parser or compiler-stage behavior.
 
 ## Handoff / Recovery

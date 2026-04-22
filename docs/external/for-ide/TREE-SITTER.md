@@ -6,10 +6,10 @@
 
 ## Ownership
 
-1. Grammar source: [../../grammar/tree-sitter-styio/grammar.js](../../grammar/tree-sitter-styio/grammar.js)
+1. Grammar source: [../../../grammar/tree-sitter-styio/grammar.js](../../../grammar/tree-sitter-styio/grammar.js)
 2. Generated sources: `grammar/tree-sitter-styio/src/parser.c`, `src/grammar.json`, `src/node-types.json`
-3. Runtime adapter: [../../src/StyioIDE/TreeSitterBackend.cpp](../../src/StyioIDE/TreeSitterBackend.cpp)
-4. Snapshot façade: [../../src/StyioIDE/Syntax.hpp](../../src/StyioIDE/Syntax.hpp)
+3. Runtime adapter: [../../../src/StyioIDE/TreeSitterBackend.cpp](../../../src/StyioIDE/TreeSitterBackend.cpp)
+4. Snapshot façade: [../../../src/StyioIDE/Syntax.hpp](../../../src/StyioIDE/Syntax.hpp)
 
 ## What Tree-sitter Owns Today
 

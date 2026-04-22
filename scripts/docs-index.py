@@ -10,53 +10,12 @@ from datetime import date
 from pathlib import Path
 from typing import Iterable, List, Optional
 
+from docs_config import collection_dirs, collection_index_meta
+
 ROOT = Path(__file__).resolve().parents[1]
 TODAY = date.today().isoformat()
-COLLECTION_DIRS = [
-    Path("docs"),
-    Path("docs/rollups"),
-    Path("docs/archive"),
-    Path("docs/archive/history"),
-    Path("docs/archive/review"),
-    Path("docs/design"),
-    Path("docs/specs"),
-    Path("docs/specs/audit"),
-    Path("docs/teams"),
-    Path("docs/review"),
-    Path("docs/plans"),
-    Path("docs/for-ide"),
-    Path("docs/for_spio"),
-    Path("docs/assets"),
-    Path("docs/assets/workflow"),
-    Path("docs/assets/templates"),
-    Path("docs/adr"),
-    Path("docs/audit"),
-    Path("docs/history"),
-    Path("docs/milestones"),
-]
-
-INDEX_META = {
-    "docs": ("Docs Index", "Provide the generated inventory for `docs/`; directory boundaries and maintenance rules live in [README.md](./README.md)."),
-    "docs/rollups": ("Rollups Index", "Provide the generated inventory for `docs/rollups/`; compressed active summaries and default loading order live in [README.md](./README.md)."),
-    "docs/archive": ("Archive Index", "Provide the generated inventory for `docs/archive/`; provenance rules and archive lifecycle boundaries live in [README.md](./README.md)."),
-    "docs/archive/history": ("Archive History Index", "Provide the generated inventory for `docs/archive/history/`; archived raw history snapshots live in [README.md](./README.md)."),
-    "docs/archive/review": ("Archive Review Index", "Provide the generated inventory for `docs/archive/review/`; archived dated review bundles live in [README.md](./README.md)."),
-    "docs/design": ("Design Index", "Provide the generated inventory for `docs/design/`; document boundaries and naming rules live in [README.md](./README.md)."),
-    "docs/specs": ("Specs Index", "Provide the generated inventory for `docs/specs/`; document boundaries and naming rules live in [README.md](./README.md)."),
-    "docs/specs/audit": ("Audit Specs Index", "Provide the generated inventory for `docs/specs/audit/`; audit checklist ownership lives in [README.md](./README.md)."),
-    "docs/teams": ("Teams Index", "Provide the generated inventory for `docs/teams/`; team daily-work boundaries and runbook rules live in [README.md](./README.md)."),
-    "docs/review": ("Review Index", "Provide the generated inventory for `docs/review/`; document boundaries and naming rules live in [README.md](./README.md)."),
-    "docs/plans": ("Plans Index", "Provide the generated inventory for `docs/plans/`; document boundaries and naming rules live in [README.md](./README.md)."),
-    "docs/for-ide": ("For IDE Index", "Provide the generated inventory for `docs/for-ide/`; IDE embedding, LSP usage, and edit-time parser guidance live in [README.md](./README.md)."),
-    "docs/for_spio": ("For Spio Index", "Provide the generated inventory for `docs/for_spio/`; handoff boundaries and coordination rules for `styio-spio` live in [README.md](./README.md)."),
-    "docs/assets": ("Assets Index", "Provide the generated inventory for `docs/assets/`; asset boundaries and reuse rules live in [README.md](./README.md)."),
-    "docs/assets/workflow": ("Workflow Assets Index", "Provide the generated inventory for `docs/assets/workflow/`; workflow boundaries and reuse rules live in [README.md](./README.md)."),
-    "docs/assets/templates": ("Template Assets Index", "Provide the generated inventory for `docs/assets/templates/`; template boundaries and reuse rules live in [README.md](./README.md)."),
-    "docs/adr": ("ADR Index", "Provide the generated inventory for `docs/adr/`; decision-record conventions live in [README.md](./README.md)."),
-    "docs/audit": ("Audit Index", "Provide the generated inventory for `docs/audit/`; transient defect records live in ignored `docs/audit/defects/` and are enforced by external `styio-audit` runs."),
-    "docs/history": ("History Index", "Provide the generated inventory for `docs/history/`; recovery rules live in [README.md](./README.md)."),
-    "docs/milestones": ("Milestones Index", "Provide the generated inventory for `docs/milestones/`; freeze-batch rules live in [README.md](./README.md)."),
-}
+COLLECTION_DIRS = collection_dirs()
+INDEX_META = collection_index_meta()
 
 TITLE_RE = re.compile(r"^#\s+(.+?)\s*$", re.M)
 PURPOSE_RE = re.compile(r"^(?:\*\*Purpose:\*\*|\[EN\] Purpose:)\s+(.+?)\s*$", re.M)
@@ -209,7 +168,7 @@ def render_index(base: Path) -> str:
 
 def write_indexes(check: bool) -> int:
     failures: List[str] = []
-    for rel_dir in COLLECTION_DIRS:
+    for rel_dir in sorted(COLLECTION_DIRS, key=lambda path: len(path.parts), reverse=True):
         base = ROOT / rel_dir
         index_path = base / "INDEX.md"
         expected = render_index(base)

@@ -94,7 +94,7 @@ Acceptance:
 
 ### Task 18.5 — Update docs
 **Role:** Doc Agent  
-**Files:** `docs/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
+**Files:** `docs/external/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
 **Action:** Document runtime scheduling, debounce, and cancellation semantics.  
 **Verify:** `python3 scripts/docs-audit.py` passes.
 

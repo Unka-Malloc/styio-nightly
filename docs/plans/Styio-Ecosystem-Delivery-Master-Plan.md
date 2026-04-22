@@ -45,7 +45,7 @@ Treat this plan as the answer to "is the ecosystem done?", not "is one repo loca
    - 只保留 `view` 侧里程碑映射、repo exit 和本仓 gate 解释。
 3. `styio-nightly/docs/plans/Styio-Ecosystem-CLI-Contract-Matrix.md`
    - 继续作为 CLI/machine contract 的唯一冻结矩阵。
-4. `docs/for-*`、`docs/styio/`、`docs/contracts/`
+4. `docs/external/for-*`、`docs/external/for-styio/`、`docs/contracts/`
    - 只承载消费者 handoff 和局部合同，不得偷改 milestone 定义。
 
 任何一个 checkpoint 只要改了里程碑定义、shared contract、repo exit、handoff 路径或 cutover gate，必须按这个顺序同步：
@@ -177,10 +177,10 @@ Repo lead 可以继续下拆 sub-agent，但以下 choke point 不允许并行�
 文档落点：
 
 1. `styio-nightly/docs/plans/Styio-Ecosystem-CLI-Contract-Matrix.md`
-2. `styio-nightly/docs/for_spio/`
-3. `styio-nightly/docs/for-ide/`
-4. `styio-spio/docs/styio/Styio-External-Interface-Requirement-Spec.md`
-5. `styio-view/docs/for-styio/`
+2. `styio-nightly/docs/external/for-spio/`
+3. `styio-nightly/docs/external/for-ide/`
+4. `styio-spio/docs/external/for-styio/Styio-External-Interface-Requirement-Spec.md`
+5. `styio-view/docs/external/for-styio/`
 
 门禁出口：
 
@@ -202,7 +202,7 @@ Repo lead 可以继续下拆 sub-agent，但以下 choke point 不允许并行�
 1. `styio-spio/docs/governance/Spio-CLI-Contract.md`
 2. `styio-spio/docs/governance/Spio-Entry-Argument-Index.md`
 3. `styio-spio/docs/operations/Spio-Verification-Matrix.md`
-4. `styio-view/docs/for-spio/`
+4. `styio-view/docs/external/for-spio/`
 5. `styio-view/docs/contracts/`
 
 门禁出口：
@@ -226,8 +226,8 @@ Repo lead 可以继续下拆 sub-agent，但以下 choke point 不允许并行�
 
 1. `styio-view/docs/plans/Styio-View-Implementation-Plan.md`
 2. `styio-view/docs/contracts/`
-3. `styio-view/docs/for-styio/`
-4. `styio-view/docs/for-spio/`
+3. `styio-view/docs/external/for-styio/`
+4. `styio-view/docs/external/for-spio/`
 5. `styio-view/docs/assets/workflow/TEST-CATALOG.md`
 
 门禁出口：

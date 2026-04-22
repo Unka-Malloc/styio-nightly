@@ -120,7 +120,7 @@ Acceptance:
 
 ### Task 15.5 — Update docs
 **Role:** Doc Agent  
-**Files:** `docs/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
+**Files:** `docs/external/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
 **Action:** Document inference query boundaries and invalidation rules.  
 **Verify:** `python3 scripts/docs-audit.py` passes.
 

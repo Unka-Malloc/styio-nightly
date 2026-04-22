@@ -1,6 +1,6 @@
 # For Spio Docs
 
-**Purpose:** Define the scope and naming rules for `docs/for_spio/`; this directory holds `styio`-side handoff and coordination material intended for the `styio-spio` repository, while the generated inventory lives in [INDEX.md](./INDEX.md).
+**Purpose:** Define the scope and naming rules for `docs/external/for-spio/`; this directory holds `styio`-side handoff and coordination material intended for the `styio-spio` repository, while the generated inventory lives in [INDEX.md](./INDEX.md).
 
 **Last updated:** 2026-04-12
 

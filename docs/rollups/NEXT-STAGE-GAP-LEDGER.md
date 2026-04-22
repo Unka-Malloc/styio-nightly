@@ -41,7 +41,7 @@
 
 | Area | Owning repo | Status in `styio` | Notes |
 |------|-------------|-------------------|-------|
-| Nano package materialization, static local registry consume/publish, compiler capability reporting | `styio` | Delivered baseline | See [../for_spio/Styio-Nano-Spio-Coordination.md](../for_spio/Styio-Nano-Spio-Coordination.md) |
+| Nano package materialization, static local registry consume/publish, compiler capability reporting | `styio` | Delivered baseline | See [../external/for-spio/Styio-Nano-Spio-Coordination.md](../external/for-spio/Styio-Nano-Spio-Coordination.md) |
 | Full package-manager UX: `install`, `use`, `search`, `vendor`, `pin`, dependency resolution, lockfiles, remote registry protocol | `styio-spio` | Out of scope here | See [../specs/REPOSITORY-MAP.md](../specs/REPOSITORY-MAP.md) |
 | `spio build/check/run/test` live compile-plan handoff | `styio` producer contract, `styio-spio` consumer integration | Delivered baseline in `styio` | `--machine-info=json` advertises `compile_plan:[1]`; compile-plan consumer materializes artifacts / receipt / `diag_dir` diagnostics |
 | Remote registry service semantics, auth/signing/trust, channel aliasing, package listing APIs | `styio-spio` | Not owned here | `styio` should not absorb this scope |
@@ -85,7 +85,7 @@
 
 | Gap | Severity | Current evidence | Owning teams | Next checkpoint intent |
 |-----|----------|------------------|--------------|------------------------|
-| LSP surface is still intentionally incomplete | Medium | Current limits still list local-only, single-workspace behavior and missing `rename`, `codeAction`, and `inlayHint` in [../for-ide/LSP.md](../for-ide/LSP.md); server capabilities stop at completion/hover/definition/references/symbols/semantic tokens in [src/StyioLSP/Server.cpp](../../src/StyioLSP/Server.cpp) | IDE / LSP, Docs / Ecosystem | Expand the surface only after runtime drain and semantic identity paths remain stable under tests |
+| LSP surface is still intentionally incomplete | Medium | Current limits still list local-only, single-workspace behavior and missing `rename`, `codeAction`, and `inlayHint` in [../external/for-ide/LSP.md](../external/for-ide/LSP.md); server capabilities stop at completion/hover/definition/references/symbols/semantic tokens in [src/StyioLSP/Server.cpp](../../src/StyioLSP/Server.cpp) | IDE / LSP, Docs / Ecosystem | Expand the surface only after runtime drain and semantic identity paths remain stable under tests |
 | Perf budget enforcement is split between unit and dedicated Release harnesses | Low | `StyioIdePerf.EnforcesFrozenLatencyBudgets` skips non-Release runs in [tests/ide/styio_ide_test.cpp](../../tests/ide/styio_ide_test.cpp), and M19 documents the dedicated perf harness in [../milestones/2026-04-15/M19-QualityAndPerformanceClosure.md](../milestones/2026-04-15/M19-QualityAndPerformanceClosure.md) | IDE / LSP, Perf / Stability | Preserve the dedicated Release gate, but keep the distinction visible so teams do not mistake Debug green for perf closure |
 
 ### 5.6 Tests / Quality / Perf

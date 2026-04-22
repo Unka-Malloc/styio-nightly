@@ -26,7 +26,7 @@ auto semantic_tokens = service.semantic_tokens(uri);
 auto context = service.completion_context(uri, styio::ide::Position{1, 16});
 ```
 
-Public façade methods currently available in [../../src/StyioIDE/Service.hpp](../../src/StyioIDE/Service.hpp):
+Public façade methods currently available in [../../../src/StyioIDE/Service.hpp](../../../src/StyioIDE/Service.hpp):
 
 1. `initialize`
 2. `did_open`

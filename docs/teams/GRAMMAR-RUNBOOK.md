@@ -17,11 +17,11 @@ Primary paths:
 3. `grammar/tree-sitter-styio/src/grammar.json`
 4. `grammar/tree-sitter-styio/src/node-types.json`
 5. `src/StyioIDE/TreeSitterBackend.*`
-6. [../for-ide/TREE-SITTER.md](../for-ide/TREE-SITTER.md)
+6. [../external/for-ide/TREE-SITTER.md](../external/for-ide/TREE-SITTER.md)
 
 ## Daily Workflow
 
-1. Check [../for-ide/TREE-SITTER.md](../for-ide/TREE-SITTER.md) and `grammar/tree-sitter-styio/README.md`.
+1. Check [../external/for-ide/TREE-SITTER.md](../external/for-ide/TREE-SITTER.md) and `grammar/tree-sitter-styio/README.md`.
 2. Edit `grammar.js` for grammar source changes.
 3. Regenerate artifacts from `grammar/tree-sitter-styio/`.
 4. Review generated diffs for suspicious broad churn.
@@ -63,7 +63,7 @@ ctest --test-dir build-no-tree-sitter -L ide
 1. IDE / LSP must review every syntax snapshot or adapter behavior change.
 2. Frontend must review grammar changes that claim alignment with compiler parser behavior.
 3. Test Quality must review IDE regression coverage for error recovery and incremental reuse.
-4. Docs / Ecosystem must review `docs/for-ide/` updates.
+4. Docs / Ecosystem must review `docs/external/for-ide/` updates.
 
 ## Handoff / Recovery
 

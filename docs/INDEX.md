@@ -15,8 +15,7 @@
 | `assets/` | [Assets Index](./assets/INDEX.md) | Define the scope of reusable documentation assets under docs/assets/; the generated inventory lives in INDEX.md. |
 | `audit/` | [Audit Index](./audit/INDEX.md) | Define the repository-local audit queue for security, correctness, and design defects discovered before they are converted into normal tracked work. |
 | `design/` | [Design Index](./design/INDEX.md) | Define the scope and naming rules for docs/design/; the generated file inventory lives in INDEX.md. |
-| `for-ide/` | [For IDE Index](./for-ide/INDEX.md) | Define the scope and naming rules for docs/for-ide/; this directory is the SSOT for consuming styio's IDE-facing components, while the generated inventory lives in INDEX.md. |
-| `for_spio/` | [For Spio Index](./for_spio/INDEX.md) | Define the scope and naming rules for docs/for_spio/; this directory holds styio-side handoff and coordination material intended for the styio-spio repository, while the generated inventory lives in INDEX.md. |
+| `external/` | [External Docs Index](./external/INDEX.md) | Define the scope and naming rules for external-facing handoff docs shared with sibling Styio repositories. |
 | `history/` | [History Index](./history/INDEX.md) | Define the scope and recovery usage of docs/history/; these files store raw checkpoint and execution traces, not the active maintenance truth. |
 | `milestones/` | [Milestones Index](./milestones/INDEX.md) | Define the scope and naming rules for active milestone batches under docs/milestones/; absorbed historical batches move to docs/archive/milestones/, and the generated inventory lives in INDEX.md. |
 | `plans/` | [Plans Index](./plans/INDEX.md) | Define the scope and naming rules for active implementation plans under docs/plans/; absorbed or superseded plans move to docs/archive/plans/, and the generated file inventory lives in INDEX.md. |

@@ -11,30 +11,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence
 
+from docs_config import collection_dirs
+
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
-COLLECTION_DIRS = [
-    DOCS,
-    DOCS / "rollups",
-    DOCS / "archive",
-    DOCS / "archive" / "history",
-    DOCS / "archive" / "review",
-    DOCS / "design",
-    DOCS / "specs",
-    DOCS / "specs" / "audit",
-    DOCS / "teams",
-    DOCS / "review",
-    DOCS / "plans",
-    DOCS / "for-ide",
-    DOCS / "for_spio",
-    DOCS / "assets",
-    DOCS / "assets" / "workflow",
-    DOCS / "assets" / "templates",
-    DOCS / "adr",
-    DOCS / "audit",
-    DOCS / "history",
-    DOCS / "milestones",
-]
+COLLECTION_DIRS = collection_dirs(ROOT)
 PURPOSE_RE = re.compile(r"^(?:\*\*Purpose:\*\*|\[EN\] Purpose:)\s+.+$", re.M)
 LAST_UPDATED_RE = re.compile(r"^(?:\*\*Last updated:\*\*|\[EN\] Last updated:)\s+[0-9]{4}-[0-9]{2}-[0-9]{2}\s*$", re.M)
 LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")

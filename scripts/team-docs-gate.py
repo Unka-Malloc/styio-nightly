@@ -66,7 +66,7 @@ TEAM_RULES: tuple[TeamRule, ...] = (
             "configs/",
             "scripts/gen-styio-nano-profile.py",
             "scripts/source-build-minimal.sh",
-            "docs/for_spio/",
+            "docs/external/for-spio/",
         ),
     ),
     TeamRule(
@@ -76,7 +76,7 @@ TEAM_RULES: tuple[TeamRule, ...] = (
         (
             "src/StyioIDE/",
             "src/StyioLSP/",
-            "docs/for-ide/",
+            "docs/external/for-ide/",
             "tests/ide/",
         ),
     ),
@@ -122,6 +122,8 @@ TEAM_RULES: tuple[TeamRule, ...] = (
             "templates/",
             "scripts/docs-index.py",
             "scripts/docs-audit.py",
+            "scripts/docs-scaffold.py",
+            "scripts/docs_config.py",
             "scripts/docs-lifecycle.py",
             "scripts/delivery-gate.sh",
             "scripts/team-docs-gate.py",

@@ -8,7 +8,7 @@
 
 1. Contributors bringing up `styio-nightly` on a fresh Debian/Ubuntu VM or container.
 2. Contributors who need the common compiler build, test, and docs-audit commands.
-3. IDE/LSP contributors who need the repo-level prerequisites before following `docs/for-ide/`.
+3. IDE/LSP contributors who need the repo-level prerequisites before following `docs/external/for-ide/`.
 
 ## Fresh Machine Bootstrap
 
@@ -85,8 +85,8 @@ Run the full checkpoint delivery floor:
 
 ## Subsystem-Specific Follow-Ups
 
-1. IDE and LSP targets: [for-ide/BUILD.md](./for-ide/BUILD.md)
-2. IDE integration doc index: [for-ide/INDEX.md](./for-ide/INDEX.md)
+1. IDE and LSP targets: [external/for-ide/BUILD.md](./external/for-ide/BUILD.md)
+2. IDE integration doc index: [external/for-ide/INDEX.md](./external/for-ide/INDEX.md)
 3. Team-owned workflow and delivery rules: [teams/INDEX.md](./teams/INDEX.md)
 4. Repository workflow assets: [assets/INDEX.md](./assets/INDEX.md)
 

@@ -1,6 +1,6 @@
 # For IDE Index
 
-**Purpose:** Provide the generated inventory for `docs/for-ide/`; IDE embedding, LSP usage, and edit-time parser guidance live in [README.md](./README.md).
+**Purpose:** Provide the generated inventory for `docs/external/for-ide/`; IDE embedding, LSP usage, and edit-time parser guidance live in [README.md](./README.md).
 
 **Last updated:** 2026-04-22
 

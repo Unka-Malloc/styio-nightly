@@ -164,7 +164,7 @@ The current stage is not one linear track. It needs four coordinated axes:
     - regression tests for delayed semantic publication.
   - Minimum gate:
     - `ctest --test-dir build-codex -L ide`,
-    - `docs/for-ide/` update,
+    - `docs/external/for-ide/` update,
     - docs audit.
 
 - `CP-B0.2` `M18` — **Closed 2026-04-22**
@@ -470,7 +470,7 @@ Expected deliverables from IDE / LSP:
 
 1. exact before/after publication behavior,
 2. LSP transcript or unit regression coverage,
-3. update to `docs/for-ide/` when public host behavior changes,
+3. update to `docs/external/for-ide/` when public host behavior changes,
 4. explicit note when a feature stays intentionally deferred.
 
 IDE / LSP should not ship alone when:

@@ -168,7 +168,7 @@ Required existing tests:
 
 ### Task 12.8 — Update docs
 **Role:** Doc Agent  
-**Files:** `docs/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
+**Files:** `docs/external/for-ide/*.md`, `docs/plans/*.md`, `docs/milestones/2026-04-15/*.md`  
 **Action:** Document query boundaries, cache keys, and invalidation semantics.  
 **Verify:** `python3 scripts/docs-audit.py` passes.
 

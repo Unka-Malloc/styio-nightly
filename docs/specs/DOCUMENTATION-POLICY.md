@@ -98,7 +98,7 @@ Every `docs/**/*.md` file must expose machine-readable update metadata near the 
 | `docs/teams/` | 团队日常 runbook、review 协作矩阵、跨团队维护入口；不替代语言、测试或仓库边界 SSOT |
 | `docs/review/` | review 发现、设计冲突、待定决议 |
 | `docs/plans/` | 当前仍在执行的设计草案、实施计划、迁移方案；已吸收/已完成项移入 `docs/archive/plans/` |
-| `docs/for-ide/` | IDE 集成、LSP 调用、嵌入方式与 edit-time 语法层使用说明 |
+| `docs/external/for-ide/` | IDE 集成、LSP 调用、嵌入方式与 edit-time 语法层使用说明 |
 | `docs/assets/workflow/` | 可复用工作流、测试框架、checkpoint / hygiene 标准 |
 | `docs/assets/templates/` | 可复用模板 |
 | `docs/rollups/` | 压缩后的 active 摘要；默认冷启动先读这里 |
