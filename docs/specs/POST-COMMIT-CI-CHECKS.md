@@ -58,6 +58,8 @@ When one delivery touches `styio-nightly`, `styio-spio`, and `styio-view`, post-
 
 Cross-repository gates must use the same workspace checkout set that will be visible to CI. If a gate consumes another repository's branch, push that repository first or report that remote CI may still be using an older sibling checkout.
 
+`styio-nightly` GitHub Actions check out `styio-spio` and `styio-view` at `${{ github.ref_name }}` for cross-repository gates. A branch used for coordinated work must therefore exist in all three repositories before relying on remote Actions as the final source of truth.
+
 ## Completion Criteria
 
 A pushed change is not complete until one of these is true:

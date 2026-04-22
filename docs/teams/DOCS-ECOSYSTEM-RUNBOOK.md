@@ -50,11 +50,12 @@ Key SSOTs:
 17. Keep repository entry docs honest about maturity: if repo-local baselines are complete but ecosystem closure is still open, say that explicitly instead of leaving stale `early stage` wording in top-level entrypoints.
 18. When an evidence-backed closure retires a gap, move it out of the open gap table, add the smallest closed-evidence note, update the matching checkpoint tree entry, and regenerate affected generated indexes.
 19. Keep [../specs/POST-COMMIT-CI-CHECKS.md](../specs/POST-COMMIT-CI-CHECKS.md) aligned with actual GitHub Actions monitoring practice whenever commit, push, or CI handoff rules change.
+20. Keep GitHub Actions sibling checkouts for `styio-spio` and `styio-view` pinned to the same branch ref as `styio-nightly` when a workflow runs cross-repository gates.
 
 ## Change Classes
 
 1. Small: typo, link fix, or local README wording. Run docs audit.
-2. Medium: new docs collection, generated index config, SSOT table change, external handoff doc, commit/CI workflow spec, or CLI/runtime contract matrix update. Update policy and run generated-index checks.
+2. Medium: new docs collection, generated index config, SSOT table change, external handoff doc, commit/CI workflow spec, sibling checkout ref policy, or CLI/runtime contract matrix update. Update policy and run generated-index checks.
 3. High: repository boundary, archive lifecycle, docs audit rule, or ecosystem ownership change. Use checkpoint workflow and coordinate affected implementation teams.
 
 ## Required Gates
