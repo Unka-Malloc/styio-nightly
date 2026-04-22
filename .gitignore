@@ -94,6 +94,7 @@ parser-shadow-artifacts-*/
 .DS_Store
 
 # Shared cross-repo tracked-fixture negate rules
+docs/audit/defects/
 !docs/**/build/
 !docs/**/build/**
 !docs/**/build-*/

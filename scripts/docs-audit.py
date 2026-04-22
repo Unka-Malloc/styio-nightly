@@ -21,6 +21,7 @@ COLLECTION_DIRS = [
     DOCS / "archive" / "review",
     DOCS / "design",
     DOCS / "specs",
+    DOCS / "specs" / "audit",
     DOCS / "teams",
     DOCS / "review",
     DOCS / "plans",
@@ -30,6 +31,7 @@ COLLECTION_DIRS = [
     DOCS / "assets" / "workflow",
     DOCS / "assets" / "templates",
     DOCS / "adr",
+    DOCS / "audit",
     DOCS / "history",
     DOCS / "milestones",
 ]

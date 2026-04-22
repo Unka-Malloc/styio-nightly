@@ -1406,7 +1406,9 @@ StyioToLLVM::toLLVMIR(SGCall* node) {
 
   if (fname == "__styio_list_pop") {
     if (node->func_args.size() != 1) {
-      return theBuilder->getInt64(0);
+      throw StyioTypeError(
+        "runtime list pop expects 1 argument, got "
+        + std::to_string(node->func_args.size()));
     }
     llvm::FunctionCallee pop_fn = theModule->getOrInsertFunction(
       "styio_list_pop",
@@ -1436,7 +1438,10 @@ StyioToLLVM::toLLVMIR(SGCall* node) {
     const bool has_index = is_builtin_list_insert;
     const size_t expected_args = has_index ? 3 : 2;
     if (node->func_args.size() != expected_args) {
-      return theBuilder->getInt64(0);
+      throw StyioTypeError(
+        std::string(has_index ? "runtime list insert" : "runtime list push")
+        + " expects " + std::to_string(expected_args) + " argument(s), got "
+        + std::to_string(node->func_args.size()));
     }
 
     StyioValueFamily value_family = builtin_list_family_from_suffix(builtin_suffix);
@@ -1485,10 +1490,17 @@ StyioToLLVM::toLLVMIR(SGCall* node) {
 
   llvm::Function* callee = theModule->getFunction(fname);
   if (!callee) {
-    return theBuilder->getInt64(0);
+    throw StyioTypeError("unknown function `" + fname + "`");
   }
 
   llvm::FunctionType* ft = callee->getFunctionType();
+  if (node->func_args.size() != ft->getNumParams()) {
+    throw StyioTypeError(
+      "function `" + fname + "` expects "
+      + std::to_string(ft->getNumParams()) + " argument(s), got "
+      + std::to_string(node->func_args.size()));
+  }
+
   std::vector<llvm::Value*> args;
   for (size_t i = 0; i < node->func_args.size(); ++i) {
     llvm::Value* av = node->func_args[i]->toLLVMIR(this);

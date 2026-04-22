@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of AST lifecycle, semantic analysis, type inference, StyioIR lowering, string representation, and compilation session ownership.
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-22
 
 ## Mission
 
@@ -31,6 +31,8 @@ High-value docs:
 3. Keep ownership/view changes small and covered by safety or security tests.
 4. Update five-layer goldens when AST or StyioIR textual shape intentionally changes.
 5. Coordinate with Codegen / Runtime before changing IR consumed by LLVM emission.
+6. Keep semantic lowering fail-closed: unknown user calls, user-call arity mismatches, unsupported AST nodes, and missing type slots must produce typed diagnostics or covered lowering rules, not `SGConstInt(0)` placeholders.
+7. When adding or repairing AST nodes such as `SizeOf`, prove the full lifecycle: owned child expression, writable inferred type slot, typed inference result, and StyioIR lowering shape.
 
 ## Change Classes
 
@@ -76,3 +78,4 @@ Record unfinished middle-layer work with:
 3. Expected repr or IR text delta.
 4. Failing five-layer layer, if any.
 5. Whether Codegen has already been adapted.
+6. Remaining unsupported-lowering handlers and the negative matrix needed to retire placeholder fallback safely.

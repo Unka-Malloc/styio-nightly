@@ -60,13 +60,19 @@ styio-calc> quit
 
 | Repository | Role |
 | --- | --- |
-| [styio-spio](https://github.com/eBioRing/styio-spio) | 包管理器 |
+| [styio-spio](https://github.com/eBioRing/styio-spio) | 包管理器、registry/cloud backend、repo-hosted control console |
 | [styio-dev-doc](https://github.com/eBioRing/styio-dev-doc) | 开发者文档 |
 | [styio-dev-env](https://github.com/eBioRing/styio-dev-env) | 标准开发环境 |
 | [styio-book](https://github.com/eBioRing/styio-book) | 产品白皮书 |
-| [styio-view](https://github.com/eBioRing/styio-view) | 可视化页面 |
+| [styio-view](https://github.com/eBioRing/styio-view) | 面向用户的编辑与运行视图前端 |
 | [styio-examples](https://github.com/eBioRing/styio-examples) | 示例工程集合 |
 | [styio-ext-vsc](https://github.com/eBioRing/styio-ext-vsc) | VS Code 插件 |
+
+当前三仓并行开发切面固定为：
+
+- `styio-nightly` 负责 compiler / language / managed-toolchain SSOT
+- `styio-spio` 负责 package manager、registry/cloud backend、repo-hosted control console
+- `styio-view` 负责面向用户的编辑与运行前端，并通过 adapter 消费后端/工具链合同
 
 ## 开发者入口
 
@@ -98,4 +104,5 @@ styio-calc> quit
 - 示例工程： [styio-examples](https://github.com/eBioRing/styio-examples)
 - 编辑器支持： [styio-ext-vsc](https://github.com/eBioRing/styio-ext-vsc)
 - 生态边界说明： [docs/specs/REPOSITORY-MAP.md](docs/specs/REPOSITORY-MAP.md)
+- 并行开发边界： [docs/specs/ECOSYSTEM-REPO-SPLIT-AND-PARALLEL-DEV.md](docs/specs/ECOSYSTEM-REPO-SPLIT-AND-PARALLEL-DEV.md)
 - 项目原则与目标： [docs/specs/PRINCIPLES-AND-OBJECTIVES.md](docs/specs/PRINCIPLES-AND-OBJECTIVES.md)

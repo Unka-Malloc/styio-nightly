@@ -1508,13 +1508,17 @@ public:
 class SizeOfAST : public StyioASTTraits<SizeOfAST>
 {
   std::unique_ptr<StyioAST> value_owner_;
+  std::unique_ptr<TypeAST> size_type_owner_;
   StyioAST* Value = nullptr;
+  TypeAST* size_type = nullptr;
 
 public:
   SizeOfAST(
     StyioAST* value
   ) :
       value_owner_(value), Value(value_owner_.get()) {
+    size_type_owner_.reset(TypeAST::Create());
+    size_type = size_type_owner_.get();
   }
 
   StyioAST* getValue() {
@@ -1526,7 +1530,11 @@ public:
   }
 
   const StyioDataType getDataType() const {
-    return StyioDataType{StyioDataTypeOption::Undefined, "undefined", 0};
+    return size_type->getDataType();
+  }
+
+  void setDataType(StyioDataType type) {
+    size_type->setType(type);
   }
 };
 

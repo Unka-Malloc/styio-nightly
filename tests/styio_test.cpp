@@ -545,6 +545,29 @@ TEST(StyioTypes, F32BuiltinMappingUsesF32InternalName) {
   EXPECT_EQ(f32.num_of_bit, static_cast<size_t>(32));
 }
 
+TEST(StyioTypes, GetMaxTypeNumericPromotionByBitWidth) {
+  const StyioDataType f32 = styio_data_type_from_name("f32");
+  const StyioDataType f64 = styio_data_type_from_name("f64");
+  const StyioDataType i32 = styio_data_type_from_name("i32");
+  const StyioDataType i64 = styio_data_type_from_name("i64");
+  const StyioDataType i128 = styio_data_type_from_name("i128");
+
+  EXPECT_EQ(getMaxType(f32, i32).name, "f32");
+  EXPECT_EQ(getMaxType(i32, f32).name, "f32");
+  EXPECT_EQ(getMaxType(f64, i32).name, "f64");
+  EXPECT_EQ(getMaxType(f32, i64).name, "f64");
+  EXPECT_EQ(getMaxType(f32, f64).name, "f64");
+  EXPECT_EQ(getMaxType(i32, i64).name, "i64");
+
+  const StyioDataType untyped_int{StyioDataTypeOption::Integer, "int", 0};
+  EXPECT_EQ(getMaxType(untyped_int, untyped_int).name, "int");
+
+  const StyioDataType promoted = getMaxType(f32, i128);
+  EXPECT_EQ(promoted.option, StyioDataTypeOption::Float);
+  EXPECT_EQ(promoted.name, "f64");
+  EXPECT_EQ(promoted.num_of_bit, static_cast<size_t>(64));
+}
+
 TEST(StyioDiagnostics, CompilePlanBuildWritesArtifactsWithoutExecutingEntry) {
   const auto now = std::chrono::system_clock::now().time_since_epoch();
   const long long uniq = std::chrono::duration_cast<std::chrono::microseconds>(now).count();

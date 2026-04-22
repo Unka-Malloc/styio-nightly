@@ -100,7 +100,7 @@ done
 
 BUILD_DIR="$(configure_build_dir_latest "$BUILD_DIR" "build-codex")"
 echo "[checkpoint-health] build dir: ${BUILD_DIR}"
-cmake --build "$BUILD_DIR" --target styio_test styio_security_test styio_soak_test -j8
+cmake --build "$BUILD_DIR" --target styio_test styio_security_test styio_soak_test styio_ide_test -j8
 
 echo "[checkpoint-health] docs audit"
 ctest --test-dir "$BUILD_DIR" -L docs --output-on-failure
@@ -123,6 +123,11 @@ ctest --test-dir "$BUILD_DIR" \
 echo "[checkpoint-health] pipeline + security labels"
 ctest --test-dir "$BUILD_DIR" -L styio_pipeline --output-on-failure
 ctest --test-dir "$BUILD_DIR" -L security --output-on-failure
+
+echo "[checkpoint-health] IDE/LSP runtime scheduling"
+ctest --test-dir "$BUILD_DIR" \
+  -R '^StyioLsp(Server|Runtime)\.(RunDrainsRuntimeDiagnostics|RuntimeDrainCanBeBudgetedForScheduling)$' \
+  --output-on-failure
 
 echo "[checkpoint-health] parser legacy entry audit"
 ctest --test-dir "$BUILD_DIR" \

@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of `styio_ide_core`, `styio_lspd`, IDE-facing C++ APIs, VFS snapshots, syntax/HIR/SemDB services, and LSP protocol behavior.
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-22
 
 ## Mission
 
@@ -34,6 +34,7 @@ Build and test targets:
 7. When IDE build docs mention compiler prerequisites, reflect the shared repository baseline instead of creating a second LLVM/CMake/Python version matrix under `docs/for-ide/`.
 8. Tree-sitter maintenance instructions in `docs/for-ide/BUILD.md` must keep using the repository-standard Node.js `v24.15.0` LTS line instead of a floating `stable` or distro-default Node release.
 9. Keep builtin/default-symbol completions sourced from the shared compiler-owned symbol registry under `src/StyioParser/`; do not reintroduce a private IDE-only builtin or keyword table.
+10. Preserve the M18 runtime scheduling contract: request-loop drains are budgeted, foreground work yields over queued background reindexing, and explicit idle slices drain semantic diagnostics before background work.
 
 ## Change Classes
 
@@ -54,6 +55,13 @@ When syntax backend behavior changes:
 
 ```bash
 ctest --test-dir build-codex -L ide --output-on-failure
+python3 scripts/docs-audit.py
+```
+
+When runtime scheduling or LSP drain behavior changes:
+
+```bash
+ctest --test-dir build-codex -L ide --tests-regex 'StyioLspRuntime|StyioLspServer.RunDrainsRuntimeDiagnostics' --output-on-failure
 python3 scripts/docs-audit.py
 ```
 

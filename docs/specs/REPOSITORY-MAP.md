@@ -2,7 +2,7 @@
 
 **Purpose:** 记录 Styio 官方仓库生态、各仓库的预期职责边界、以及文档应当落在哪个仓库；本文件用于说明“谁负责什么”，**不**负责追踪实时开发进度、版本发布状态或逐仓库完成度。
 
-**Last updated:** 2026-04-10
+**Last updated:** 2026-04-21
 
 ---
 
@@ -25,6 +25,10 @@
 
 - [`../plans/Styio-Ecosystem-Bootstrap-Plan.md`](../plans/Styio-Ecosystem-Bootstrap-Plan.md)
 
+如果你关心的是三仓如何并行推进、谁拥有哪类合同，请看：
+
+- [`./ECOSYSTEM-REPO-SPLIT-AND-PARALLEL-DEV.md`](./ECOSYSTEM-REPO-SPLIT-AND-PARALLEL-DEV.md)
+
 ---
 
 ## 2. 总体说明
@@ -35,7 +39,7 @@ Styio 当前采用“主仓库 + 配件仓库”的生态结构：
 - 其余仓库是围绕包管理、开发环境、产品文档、示例、编辑器扩展和可视化等方向展开的配件仓库。
 - 除非某个配件仓库已明确建立并持续维护自己的权威边界，否则默认仍以 `styio` 主仓库中的设计与规格文档为准。
 
-当前项目共识是：**除主仓库外，绝大多数配件仓库仍应被视为“待建设”或“信息可能滞后”的状态。** 因此，本文件优先解决“仓库角色识别”和“文档归属”，而不是给出实时状态看板。
+当前项目共识是：**主仓库之外的关键配件仓库已经有了清晰职责边界，但实现成熟度和交付闭合度仍不一致。** 因此，本文件优先解决“仓库角色识别”和“文档归属”，而不是给出实时状态看板。
 
 ---
 
@@ -44,11 +48,11 @@ Styio 当前采用“主仓库 + 配件仓库”的生态结构：
 | Repository | Role | Owns What | Does Not Own |
 |------------|------|-----------|--------------|
 | [`styio`](../../README.md) | 主语言与编译器仓库 | 语言设计、形式文法、编译器实现、CLI、测试、主文档入口 | 包管理器、编辑器插件、产品白皮书、示例工程生态 |
-| [`styio-spio`](https://github.com/eBioRing/styio-spio) | 包管理器 | 包格式、包解析/安装/发布、依赖解析、仓库源协议 | Styio 核心语言语义与编译器实现 |
+| [`styio-spio`](https://github.com/eBioRing/styio-spio) | 包管理器、registry/cloud backend、repo-hosted control console | 包格式、包解析/安装/发布、依赖解析、仓库源协议、仓库托管与云平台后台、仓库托管的管控台前端、跨仓 hosted API 合同包 | Styio 核心语言语义与编译器实现 |
 | [`styio-dev-doc`](https://github.com/eBioRing/styio-dev-doc) | 开发者文档仓库 | 跨仓库开发手册、搭建流程、协作说明、外部开发者上手指南 | 语言权威语义、编译器测试验收、产品白皮书 |
 | [`styio-dev-env`](https://github.com/eBioRing/styio-dev-env) | 标准开发环境 | devcontainer、toolchain bootstrap、统一环境脚本、CI/本地环境约定 | 语言设计、产品定义、示例工程内容 |
 | [`styio-book`](https://github.com/eBioRing/styio-book) | 产品白皮书 | 产品愿景、定位、理念叙事、对外说明材料 | 编译器行为细节、测试接受标准、工程实现规范 |
-| [`styio-view`](https://github.com/eBioRing/styio-view) | 可视化页面 | 项目展示页、可视化控制台、交互式说明与演示界面 | 编译器主实现、语言 SSOT、包管理规则 |
+| [`styio-view`](https://github.com/eBioRing/styio-view) | 面向用户的编辑与运行视图前端 | 用户界面、编辑器壳层、运行视窗、面向人的工作区与交互；通过 adapter 消费工具链后端 | 编译器主实现、语言 SSOT、包管理规则、仓库/云平台后端语义 |
 | [`styio-examples`](https://github.com/eBioRing/styio-examples) | 示例工程集合 | 可运行样例、模板项目、最佳实践示例 | 语言规范正文、编译器验收标准 |
 | [`styio-ext-vsc`](https://github.com/eBioRing/styio-ext-vsc) | VS Code 插件 | 语法高亮、片段、编辑器交互、未来可能的语言服务集成 | 语言语义权威定义、编译器主行为 |
 

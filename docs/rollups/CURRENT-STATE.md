@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the compressed default read-in for the current repository state so future agents can orient themselves from active docs first; raw history, archived milestones/plans, and provenance docs are optional background, not required maintenance input.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-23
 
 ## Default Read Order
 
@@ -49,7 +49,7 @@
 ## Current Risks
 
 1. [`../review/Logic-Conflicts.md`](../review/Logic-Conflicts.md) still records unresolved syntax and semantic overloading around `<<`, `>>`, `@`, `&`, string coercion, and state lifetime.
-2. The deepest remaining implementation debt is now summarized in [`./NEXT-STAGE-GAP-LEDGER.md`](./NEXT-STAGE-GAP-LEDGER.md): parser subset gaps, sema/lowering placeholders, incomplete M7 stream closure, `spio` compile-plan handoff, and IDE stdio runtime drain.
+2. The deepest remaining implementation debt is now summarized in [`./NEXT-STAGE-GAP-LEDGER.md`](./NEXT-STAGE-GAP-LEDGER.md): parser subset gaps, sema/lowering placeholders, incomplete M7 stream closure, compile-plan release hardening with `styio-spio`, and IDE stdio runtime drain.
 3. The IDE batch is specified but not fully closed; stable semantic identity, fine-grained caches, and runtime scheduling discipline are still active work.
 4. Benchmarking is now structured, but meaningful comparisons still depend on keeping parser shadow/five-layer gates green alongside the perf route.
 5. Shared ignore/fixture governance is only frozen for current tracked roots; any future repro root outside `docs/**` or `tests/**` still needs explicit negate rules before files land.

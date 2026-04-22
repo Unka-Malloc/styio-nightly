@@ -38,6 +38,17 @@ alloc_lowering_tmp_name(const char* prefix) {
   return std::string(prefix) + std::to_string(n++);
 }
 
+std::vector<ParamAST*>
+params_of_func_def(StyioAST* def) {
+  if (auto* f = dynamic_cast<FunctionAST*>(def)) {
+    return f->params;
+  }
+  if (auto* s = dynamic_cast<SimpleFuncAST*>(def)) {
+    return s->params;
+  }
+  return {};
+}
+
 SGType*
 func_ret_to_sgtype(
   const std::variant<TypeAST*, TypeTupleAST*>& ret_type,
@@ -76,6 +87,32 @@ lower_func_body(StyioAnalyzer* an, StyioAST* body) {
   std::vector<StyioIR*> one;
   one.push_back(body->toStyioIR(an));
   return SGBlock::Create(std::move(one));
+}
+
+void
+register_direct_local_function_defs(StyioAnalyzer* an, StyioAST* body) {
+  auto* blk = dynamic_cast<BlockAST*>(body);
+  if (blk == nullptr) {
+    return;
+  }
+  for (auto* stmt : blk->stmts) {
+    if (auto* f = dynamic_cast<FunctionAST*>(stmt)) {
+      an->func_defs[f->getNameAsStr()] = f;
+      continue;
+    }
+    if (auto* sf = dynamic_cast<SimpleFuncAST*>(stmt)) {
+      an->func_defs[sf->func_name->getAsStr()] = sf;
+    }
+  }
+}
+
+SGBlock*
+lower_func_body_with_local_defs(StyioAnalyzer* an, StyioAST* body) {
+  auto saved_defs = an->func_defs;
+  register_direct_local_function_defs(an, body);
+  SGBlock* lowered = lower_func_body(an, body);
+  an->func_defs = std::move(saved_defs);
+  return lowered;
 }
 
 bool
@@ -1344,7 +1381,20 @@ StyioAnalyzer::toStyioIR(DictAST* ast) {
 
 StyioIR*
 StyioAnalyzer::toStyioIR(SizeOfAST* ast) {
-  return SGConstInt::Create(0);
+  if (ast == nullptr || ast->getValue() == nullptr) {
+    throw StyioTypeError("size-of expects an expression");
+  }
+
+  StyioDataType value_type = expr_lowered_type(this, ast->getValue());
+  StyioIR* value_ir = ast->getValue()->toStyioIR(this);
+  if (styio_is_dict_type(value_type)) {
+    return SGDictLen::Create(value_ir);
+  }
+  if (styio_is_list_type(value_type)) {
+    return SGListLen::Create(value_ir);
+  }
+
+  throw StyioTypeError("size-of expects a list or dict value");
 }
 
 StyioIR*
@@ -1704,6 +1754,18 @@ StyioAnalyzer::toStyioIR(FuncCallAST* ast) {
       std::move(args));
   }
 
+  auto def_it = func_defs.find(ast->getNameAsStr());
+  if (def_it == func_defs.end()) {
+    throw StyioTypeError("unknown function `" + ast->getNameAsStr() + "`");
+  }
+  auto params = params_of_func_def(def_it->second);
+  if (params.size() != ast->getArgList().size()) {
+    throw StyioTypeError(
+      "function `" + ast->getNameAsStr() + "` expects "
+      + std::to_string(params.size()) + " argument(s), got "
+      + std::to_string(ast->getArgList().size()));
+  }
+
   std::vector<StyioIR*> args;
   for (auto* a : ast->getArgList()) {
     args.push_back(a->toStyioIR(this));
@@ -1818,7 +1880,7 @@ StyioAnalyzer::toStyioIR(FunctionAST* ast) {
       }
     }
   }
-  SGBlock* body = lower_func_body(this, ast->func_body);
+  SGBlock* body = lower_func_body_with_local_defs(this, ast->func_body);
   SGFunc* fn = SGFunc::Create(
     rt,
     SGResId::Create(ast->getNameAsStr()),
@@ -1854,7 +1916,7 @@ StyioAnalyzer::toStyioIR(SimpleFuncAST* ast) {
       }
     }
   }
-  SGBlock* body = lower_func_body(this, ast->ret_expr);
+  SGBlock* body = lower_func_body_with_local_defs(this, ast->ret_expr);
   SGFunc* fn = SGFunc::Create(
     rt,
     SGResId::Create(ast->func_name->getAsStr()),
@@ -2204,6 +2266,17 @@ StyioAnalyzer::toStyioIR(MainBlockAST* ast) {
   std::vector<StyioIR*> ir_stmts;
   int pending_region = -1;
   SGPulsePlan* pending_plan = nullptr;
+
+  func_defs.clear();
+  for (auto* stmt : ast->getStmts()) {
+    if (auto* f = dynamic_cast<FunctionAST*>(stmt)) {
+      func_defs[f->getNameAsStr()] = f;
+      continue;
+    }
+    if (auto* sf = dynamic_cast<SimpleFuncAST*>(stmt)) {
+      func_defs[sf->func_name->getAsStr()] = sf;
+    }
+  }
 
   for (auto stmt : ast->getStmts()) {
     set_post_pulse_hist_context(pending_region, pending_plan);

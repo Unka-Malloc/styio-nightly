@@ -837,6 +837,17 @@ StyioAnalyzer::typeInfer(DictAST* ast) {
 
 void
 StyioAnalyzer::typeInfer(SizeOfAST* ast) {
+  if (ast == nullptr || ast->getValue() == nullptr) {
+    throw StyioTypeError("size-of expects an expression");
+  }
+
+  ast->getValue()->typeInfer(this);
+  const StyioDataType value_type = infer_expr_type(this, ast->getValue());
+  if (!styio_is_list_type(value_type) && !styio_is_dict_type(value_type)) {
+    throw StyioTypeError("size-of expects a list or dict value");
+  }
+
+  ast->setDataType(StyioDataType{StyioDataTypeOption::Integer, "i64", 64});
 }
 
 void
@@ -1418,7 +1429,7 @@ StyioAnalyzer::typeInfer(FuncCallAST* ast) {
 
   auto def_it = func_defs.find(ast->getNameAsStr());
   if (def_it == func_defs.end()) {
-    return;
+    throw StyioTypeError("unknown function `" + ast->getNameAsStr() + "`");
   }
 
   vector<StyioDataType> arg_types;
@@ -1431,7 +1442,10 @@ StyioAnalyzer::typeInfer(FuncCallAST* ast) {
   auto func_args = params_of_func_def(def_it->second);
 
   if (arg_types.size() != func_args.size()) {
-    return;
+    throw StyioTypeError(
+      "function `" + ast->getNameAsStr() + "` expects "
+      + std::to_string(func_args.size()) + " argument(s), got "
+      + std::to_string(arg_types.size()));
   }
 
   for (size_t i = 0; i < func_args.size(); i++) {
@@ -1690,6 +1704,7 @@ StyioAnalyzer::typeInfer(SeriesIntrinsicAST* ast) {
 void
 StyioAnalyzer::typeInfer(MainBlockAST* ast) {
   snapshot_var_names_.clear();
+  func_defs.clear();
   local_binding_types.clear();
   fixed_assignment_names_.clear();
   binding_info_.clear();
@@ -1698,6 +1713,15 @@ StyioAnalyzer::typeInfer(MainBlockAST* ast) {
   collect_bind_resource_write_types_.clear();
   collect_bind_handle_acquire_types_.clear();
   auto stmts = ast->getStmts();
+  for (auto const& s : stmts) {
+    if (auto* f = dynamic_cast<FunctionAST*>(s)) {
+      func_defs[f->getNameAsStr()] = f;
+      continue;
+    }
+    if (auto* sf = dynamic_cast<SimpleFuncAST*>(s)) {
+      func_defs[sf->func_name->getAsStr()] = sf;
+    }
+  }
   for (auto const& s : stmts) {
     s->typeInfer(this);
   }

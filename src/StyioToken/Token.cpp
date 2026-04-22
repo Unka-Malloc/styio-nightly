@@ -1,5 +1,6 @@
 // [C++ STL]
 #include <string>
+#include <algorithm>
 
 // [Styio]
 #include "Token.hpp"
@@ -503,12 +504,30 @@ reprToken(CompType token) {
 
 StyioDataType
 getMaxType(StyioDataType T1, StyioDataType T2) {
-  if (T1.option == T2.option) {
-    return T1;
+  if (T1.isInteger() && T2.isInteger()) {
+    const auto max_num_of_bit = std::max(T1.num_of_bit, T2.num_of_bit);
+    if (max_num_of_bit == 0) {
+      return T1;
+    }
+    return StyioDataType{
+      StyioDataTypeOption::Integer, "i" + std::to_string(max_num_of_bit), max_num_of_bit};
+  }
+  if (T1.isFloat() && T2.isFloat()) {
+    const auto max_num_of_bit = std::max(T1.num_of_bit, T2.num_of_bit);
+    const auto type_name = max_num_of_bit > 32 ? "f64" : "f32";
+    const size_t type_bits = max_num_of_bit > 32 ? 64 : 32;
+    return StyioDataType{StyioDataTypeOption::Float, type_name, type_bits};
   }
 
   if ((T1.isInteger() && T2.isFloat()) || (T1.isFloat() && T2.isInteger())) {
-    return StyioDataType{StyioDataTypeOption::Float, "f64", 64};
+    const auto max_num_of_bit = std::max(T1.num_of_bit, T2.num_of_bit);
+    const auto type_name = max_num_of_bit > 32 ? "f64" : "f32";
+    const size_t type_bits = max_num_of_bit > 32 ? 64 : 32;
+    return StyioDataType{StyioDataTypeOption::Float, type_name, type_bits};
+  }
+
+  if (T1.option == T2.option) {
+    return T1;
   }
 
   return StyioDataType{StyioDataTypeOption::Undefined, "Undefined", 0};

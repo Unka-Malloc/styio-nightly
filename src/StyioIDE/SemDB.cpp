@@ -650,9 +650,7 @@ SemanticDB::index_workspace() {
         symbol.detail.empty() ? symbol.type_name : symbol.detail});
     }
   }
-  if (!persisted.empty()) {
-    persistent_index_.save_symbols(persisted);
-  }
+  persistent_index_.save_symbols(persisted);
 }
 
 void

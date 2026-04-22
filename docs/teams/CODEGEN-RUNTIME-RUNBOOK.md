@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of LLVM codegen, JIT integration, external runtime helpers, handle tables, and runtime safety contracts.
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-22
 
 ## Mission
 
@@ -35,6 +35,7 @@ Related docs:
 7. Treat `runtime-events.jsonl` as a published artifact: changes to `compile.* / run.* / thread.* / unit.* / unit.test.* / state.* / transition.fired / log.emitted / diagnostic.emitted` require same-checkpoint tests and consumer doc updates.
 8. Keep `stdout/stderr` helper hooks lossless: runtime log replay may enrich the artifact stream, but must not change observable program output semantics.
 9. When `StyioJIT_ORC` needs runtime helpers, register them explicitly through `absoluteSymbols`; do not rely on host-binary export behavior or `DynamicLibrarySearchGenerator` alone, because test and tool binaries may not expose `ExternLib` symbols in their dynamic symbol table.
+10. Keep call emission and verifier handling fail-closed: unknown `SGCall` targets, exact-arity mismatches, runtime helper arity mismatches, and LLVM verifier failures must throw structured errors instead of returning zero/null placeholders or printing and continuing.
 
 ## Change Classes
 
@@ -84,3 +85,4 @@ Record unfinished codegen/runtime work with:
 4. Failing security, pipeline, soak, or benchmark command.
 5. Known rollback point and whether generated goldens are intentionally stale.
 6. Runtime-event family changes and the exact consumer docs/gates updated with them.
+7. Any remaining placeholder-return path and the focused negative test required before it can be treated as closed.

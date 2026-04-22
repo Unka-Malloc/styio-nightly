@@ -20,6 +20,7 @@ COLLECTION_DIRS = [
     Path("docs/archive/review"),
     Path("docs/design"),
     Path("docs/specs"),
+    Path("docs/specs/audit"),
     Path("docs/teams"),
     Path("docs/review"),
     Path("docs/plans"),
@@ -29,6 +30,7 @@ COLLECTION_DIRS = [
     Path("docs/assets/workflow"),
     Path("docs/assets/templates"),
     Path("docs/adr"),
+    Path("docs/audit"),
     Path("docs/history"),
     Path("docs/milestones"),
 ]
@@ -41,6 +43,7 @@ INDEX_META = {
     "docs/archive/review": ("Archive Review Index", "Provide the generated inventory for `docs/archive/review/`; archived dated review bundles live in [README.md](./README.md)."),
     "docs/design": ("Design Index", "Provide the generated inventory for `docs/design/`; document boundaries and naming rules live in [README.md](./README.md)."),
     "docs/specs": ("Specs Index", "Provide the generated inventory for `docs/specs/`; document boundaries and naming rules live in [README.md](./README.md)."),
+    "docs/specs/audit": ("Audit Specs Index", "Provide the generated inventory for `docs/specs/audit/`; audit checklist ownership lives in [README.md](./README.md)."),
     "docs/teams": ("Teams Index", "Provide the generated inventory for `docs/teams/`; team daily-work boundaries and runbook rules live in [README.md](./README.md)."),
     "docs/review": ("Review Index", "Provide the generated inventory for `docs/review/`; document boundaries and naming rules live in [README.md](./README.md)."),
     "docs/plans": ("Plans Index", "Provide the generated inventory for `docs/plans/`; document boundaries and naming rules live in [README.md](./README.md)."),
@@ -50,6 +53,7 @@ INDEX_META = {
     "docs/assets/workflow": ("Workflow Assets Index", "Provide the generated inventory for `docs/assets/workflow/`; workflow boundaries and reuse rules live in [README.md](./README.md)."),
     "docs/assets/templates": ("Template Assets Index", "Provide the generated inventory for `docs/assets/templates/`; template boundaries and reuse rules live in [README.md](./README.md)."),
     "docs/adr": ("ADR Index", "Provide the generated inventory for `docs/adr/`; decision-record conventions live in [README.md](./README.md)."),
+    "docs/audit": ("Audit Index", "Provide the generated inventory for `docs/audit/`; transient defect records live in ignored `docs/audit/defects/` and are enforced by external `styio-audit` runs."),
     "docs/history": ("History Index", "Provide the generated inventory for `docs/history/`; recovery rules live in [README.md](./README.md)."),
     "docs/milestones": ("Milestones Index", "Provide the generated inventory for `docs/milestones/`; freeze-batch rules live in [README.md](./README.md)."),
 }

@@ -2,7 +2,7 @@
 
 **Purpose:** Define how IDE hosts should launch and talk to `styio_lspd`, and record the currently supported request and notification surface.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-22
 
 ## Transport
 
@@ -74,4 +74,6 @@ Explicit imports come from top-level `@import { ... }` declarations. Source acce
 
 1. The server is local-only and single-workspace for now.
 2. `rename`, `codeAction`, and `inlayHint` are intentionally not implemented yet.
-3. Debounced semantic publication is currently driven by the in-process runtime drain hook; the stdio loop still has minimal idle-time scheduling.
+3. Debounced semantic publication is request-driven in the stdio loop: `Server::run()` drains runtime diagnostics after each processed request.
+4. `workspace/didChangeWatchedFiles` schedules background reindex work; because the stdio runtime has no separate idle thread, `Server::run()` advances one background task as a request-driven fallback only after foreground responses and semantic diagnostic drains are clear. Embedders can call `IdeService::run_idle_tasks()` for the same semantic-first idle slice.
+5. Stale foreground and semantic work is guarded by snapshot/version checks and counted instead of being published after a newer visible snapshot.

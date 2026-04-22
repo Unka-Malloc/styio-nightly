@@ -2,7 +2,7 @@
 
 **Purpose:** Show how to embed Styio's IDE components directly from C++, from the high-level `IdeService` entrypoint down to the edit-time `SyntaxParser`.
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-22
 
 ## High-Level Service
 
@@ -203,6 +203,7 @@ Merge precedence is deterministic: open-file entries override background and per
 3. `begin_foreground_request(...)` returns a `ForegroundRequestTicket`. Guarded `completion`, `hover`, `definition`, and `references` overloads drop stale or canceled work instead of returning results for obsolete snapshots.
 4. `cancel_request(...)` marks a foreground request as canceled; `RuntimeCounters` records the drop.
 5. `schedule_background_index_refresh()` and `run_background_tasks()` provide a lower-priority background lane for reindex work.
-6. `runtime_counters()` exposes coarse counters and latency aggregates for stale drops, cancellations, debounce activity, foreground-yield events, and background task completion.
+6. `run_idle_tasks()` is the explicit idle slice: it drains queued semantic diagnostics first, then runs background index work within the supplied budget.
+7. `runtime_counters()` exposes coarse counters and latency aggregates for stale drops, cancellations, debounce activity, foreground-yield events, and background task completion.
 
 To keep the M17 workspace-index guarantees under the new debounce model, dirty open buffers are refreshed into `OpenFileIndex` lazily before `workspace_symbols` and cross-file definition queries.

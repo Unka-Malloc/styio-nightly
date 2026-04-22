@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of Styio tokenization, parsing, Unicode handling, and legacy/nightly parser migration; this file links to language and test SSOTs instead of redefining grammar.
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-21
 
 ## Mission
 
@@ -35,6 +35,7 @@ Build and test targets:
 5. Update [../assets/workflow/TEST-CATALOG.md](../assets/workflow/TEST-CATALOG.md) when adding milestone or parser acceptance coverage.
 6. When token or primitive spelling tables change, add a focused regression so public token names do not drift silently.
 7. Keep `src/StyioParser/SymbolRegistry.*` as the single compiler-owned default symbol table; IDE or contract emitters must consume it instead of carrying a second builtin/keyword list.
+8. When primitive token/type table fixes close a ledger item, sync [../rollups/NEXT-STAGE-GAP-LEDGER.md](../rollups/NEXT-STAGE-GAP-LEDGER.md) and the checkpoint tree with the focused regression evidence.
 
 ## Change Classes
 

@@ -10,6 +10,7 @@
 2. Do not store language semantics or implementation history here.
 3. Prefer extending an existing spec before adding a new one.
 4. Project-wide priorities and lifecycle objectives live in [PRINCIPLES-AND-OBJECTIVES.md](./PRINCIPLES-AND-OBJECTIVES.md).
+5. Code audit and agent review rules live in [audit/CODE-AUDIT-CHECKLIST.md](./audit/CODE-AUDIT-CHECKLIST.md); agents must apply its seven design principles before accepting implementation work.
 
 ## Naming Rules
 

@@ -26,6 +26,7 @@
 #include "StyioException/Exception.hpp"
 #include "StyioExtern/ExternLib.hpp"
 #include "StyioJIT/StyioJIT_ORC.hpp"
+#include "StyioIR/GenIR/GenIR.hpp"
 #include "StyioParser/NewParserExpr.hpp"
 #include "StyioParser/ParserLookahead.hpp"
 #include "StyioParser/Parser.hpp"
@@ -289,6 +290,40 @@ parse_typecheck_and_lower_program_engine_latest(const std::string& source, Styio
     StyioAnalyzer analyzer;
     ast->typeInfer(&analyzer);
     ir = ast->toStyioIR(&analyzer);
+    cleanup();
+  } catch (...) {
+    cleanup();
+    throw;
+  }
+}
+
+void
+parse_typecheck_program_engine_latest(const std::string& source, StyioParserEngine engine) {
+  auto tokens = StyioTokenizer::tokenize(source);
+  StyioContext* ctx = StyioContext::Create(
+    "<engine-typecheck-test>",
+    source,
+    build_line_seps(source),
+    tokens,
+    false);
+
+  MainBlockAST* ast = nullptr;
+  auto cleanup = [&]() {
+    delete ast;
+    delete ctx;
+    free_tokens(tokens);
+    StyioAST::destroy_all_tracked_nodes();
+  };
+
+  try {
+    ast = parse_main_block_with_engine_latest(*ctx, engine);
+    ctx->skip();
+    if (ctx->cur_tok_type() != StyioTokenType::TOK_EOF) {
+      throw std::runtime_error("engine typecheck parser did not consume input");
+    }
+
+    StyioAnalyzer analyzer;
+    ast->typeInfer(&analyzer);
     cleanup();
   } catch (...) {
     cleanup();
@@ -875,6 +910,37 @@ TEST(StyioSecurityNightlyParserStmt, RejectsDotChainAfterCall) {
   EXPECT_THROW(parse_program_to_repr_latest(src, true), StyioSyntaxError);
 }
 
+TEST(StyioSecurityNightlySemantics, RejectsUnknownFunctionDuringTypecheck) {
+  const std::string src = "x = missing(1)\n";
+  EXPECT_THROW(
+    parse_typecheck_program_engine_latest(src, StyioParserEngine::Nightly),
+    StyioTypeError);
+}
+
+TEST(StyioSecurityNightlySemantics, RejectsUserFunctionArityMismatchDuringTypecheck) {
+  const std::vector<std::string> samples = {
+    "# add := (a: i32, b: i32) => a + b\nx = add(1)\n",
+    "# add := (a: i32, b: i32) => a + b\nx = add(1, 2, 3)\n",
+  };
+
+  for (const auto& src : samples) {
+    EXPECT_THROW(
+      parse_typecheck_program_engine_latest(src, StyioParserEngine::Nightly),
+      StyioTypeError) << src;
+  }
+}
+
+TEST(StyioSecurityNightlySemantics, AllowsDirectNestedFunctionCallsDuringLowering) {
+  const std::string src =
+    "# outer := (x: i32) => {\n"
+    "  # inner := (y: i32) => y + 1\n"
+    "  <| inner(x) + inner(x + 1)\n"
+    "}\n"
+    ">_(outer(3))\n";
+  EXPECT_NO_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
+}
+
 TEST(StyioSecurityNightlySemantics, RejectsPlainResourceCopyByEqual) {
   const std::string src =
     "l = @stdin: list[i32]\n"
@@ -1040,6 +1106,43 @@ TEST(StyioSecurityNightlyCodegen, EmitsImmediateListReleaseForFlexReassign) {
   const std::string llvm_ir =
     compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
   EXPECT_NE(llvm_ir.find("styio_list_release"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlyCodegen, UnknownSgCallFailsClosed) {
+  llvm::InitializeNativeTarget();
+  llvm::InitializeNativeTargetAsmPrinter();
+  llvm::InitializeNativeTargetAsmParser();
+  llvm::ExitOnError exit_on_error;
+  std::unique_ptr<StyioJIT_ORC> jit = exit_on_error(StyioJIT_ORC::Create());
+  StyioToLLVM generator(std::move(jit));
+
+  auto* call = SGCall::Create(SGResId::Create("missing"), {});
+  EXPECT_THROW(call->toLLVMIR(&generator), StyioTypeError);
+  delete call;
+}
+
+TEST(StyioSecurityNightlyCodegen, SgCallArityMismatchFailsBeforeLlvmEmission) {
+  llvm::InitializeNativeTarget();
+  llvm::InitializeNativeTargetAsmPrinter();
+  llvm::InitializeNativeTargetAsmParser();
+  llvm::ExitOnError exit_on_error;
+  std::unique_ptr<StyioJIT_ORC> jit = exit_on_error(StyioJIT_ORC::Create());
+  StyioToLLVM generator(std::move(jit));
+
+  auto* fn = SGFunc::Create(
+    SGType::Create(StyioDataType{StyioDataTypeOption::Integer, "i64", 64}),
+    SGResId::Create("add2"),
+    std::vector<SGFuncArg*>{
+      SGFuncArg::Create("a", SGType::Create(StyioDataType{StyioDataTypeOption::Integer, "i64", 64})),
+      SGFuncArg::Create("b", SGType::Create(StyioDataType{StyioDataTypeOption::Integer, "i64", 64}))},
+    SGBlock::Create(std::vector<StyioIR*>{SGConstInt::Create(0)}));
+  auto* call = SGCall::Create(
+    SGResId::Create("add2"),
+    std::vector<StyioIR*>{SGConstInt::Create(1)});
+  auto* entry = SGMainEntry::Create(std::vector<StyioIR*>{fn, call});
+
+  EXPECT_THROW(entry->toLLVMIR(&generator), StyioTypeError);
+  delete entry;
 }
 
 TEST(StyioSecurityNightlyCodegen, EmitsTypedListHelpersForMutationAndOperations) {
@@ -1760,6 +1863,26 @@ TEST(StyioSecurityAstOwnership, SizeOfOwnsValueExpr) {
   auto* expr = new SizeOfAST(new CountingExprAST(&destructed));
   delete expr;
   EXPECT_EQ(destructed, 1);
+}
+
+TEST(StyioSecurityAstOwnership, SizeOfLowersListLength) {
+  auto* list = ListAST::Create(
+    std::vector<StyioAST*>{
+      IntAST::Create("1"),
+      IntAST::Create("2"),
+      IntAST::Create("3")});
+  auto* expr = new SizeOfAST(list);
+
+  StyioAnalyzer analyzer;
+  expr->typeInfer(&analyzer);
+  EXPECT_EQ(expr->getDataType().option, StyioDataTypeOption::Integer);
+  EXPECT_EQ(expr->getDataType().name, "i64");
+
+  StyioIR* ir = expr->toStyioIR(&analyzer);
+  EXPECT_NE(dynamic_cast<SGListLen*>(ir), nullptr);
+
+  delete ir;
+  delete expr;
 }
 
 TEST(StyioSecurityAstOwnership, TupleOwnsElements) {
