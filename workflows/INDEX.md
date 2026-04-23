@@ -16,8 +16,14 @@
 
 | Path | Entry | Summary |
 |------|-------|---------|
+| `ADD-REPO-FILE.md` | [Add Repo File](./ADD-REPO-FILE.md) | Add a repository file with the required indexes, metadata, gates, and ownership updates. |
+| `ADD-REPO-FILE.toml` | [Add Repo File](./ADD-REPO-FILE.toml) | Add a repository file with the required indexes, metadata, gates, and ownership updates. |
+| `ADD-RESOURCE-IDENTIFIER.md` | [Add Resource Identifier](./ADD-RESOURCE-IDENTIFIER.md) | Add or change a Styio resource identifier without drifting syntax, lifecycle, docs, and tests. |
+| `ADD-RESOURCE-IDENTIFIER.toml` | [Add Resource Identifier](./ADD-RESOURCE-IDENTIFIER.toml) | Add or change a Styio resource identifier without drifting syntax, lifecycle, docs, and tests. |
 | `ADD-SYNTAX-WITH-SKILLS.md` | [Add Syntax With Skills](./ADD-SYNTAX-WITH-SKILLS.md) | Orchestrate new Styio syntax work through repo-local skills, implementation surfaces, docs, and gates. |
 | `ADD-SYNTAX-WITH-SKILLS.toml` | [Add Syntax With Skills](./ADD-SYNTAX-WITH-SKILLS.toml) | Orchestrate new Styio syntax work through repo-local skills, implementation surfaces, docs, and gates. |
+| `CHANGE-BOOTSTRAP-ENV.md` | [Change Bootstrap Env](./CHANGE-BOOTSTRAP-ENV.md) | Change environment dependency bootstrap behavior without turning bootstrap into build or delivery automation. |
+| `CHANGE-BOOTSTRAP-ENV.toml` | [Change Bootstrap Env](./CHANGE-BOOTSTRAP-ENV.toml) | Change environment dependency bootstrap behavior without turning bootstrap into build or delivery automation. |
 | `CHECKPOINT-HEALTH.md` | [Checkpoint Health](./CHECKPOINT-HEALTH.md) | Define the repository-wide build/test health entrypoint for styio-nightly so CI and checkpoint delivery can call one script instead of wiring compiler-specific checks inline. |
 | `CHECKPOINT-HEALTH.toml` | [Checkpoint Health](./CHECKPOINT-HEALTH.toml) | Define the repository-wide build/test health entrypoint for styio-nightly. |
 | `CHECKPOINT-WORKFLOW.md` | [Styio 中断友好 Checkpoint 工作流](./CHECKPOINT-WORKFLOW.md) | 约束 Styio 在底层重构期间的 微里程碑拆分、可中断恢复、分支寿命与合并门槛；不替代语言语义文档（见 ../docs/design/Styio-Language-Design.md / ../docs/design/Styio-EBNF.md），也不重写项目级优先级顺序（见 ../docs/specs/PRINCIPLES-AND-OBJECTIVES.md）。 |
@@ -30,6 +36,8 @@
 | `DOCS-MAINTENANCE-WORKFLOW.toml` | [Docs Maintenance Workflow](./DOCS-MAINTENANCE-WORKFLOW.toml) | Maintain docs metadata, generated indexes, archive lifecycle state, and structural validation. |
 | `FIVE-LAYER-PIPELINE.md` | [Styio 五层流水线 Goldens](./FIVE-LAYER-PIPELINE.md) | 说明 Lexer → Parser(AST) → StyioIR → LLVM IR → 进程 stdout 的分层 golden 比对框架、目录约定与维护方式；与里程碑 仅比最终 stdout 的 styio_stdout_golden_test 互补。 |
 | `FIVE-LAYER-PIPELINE.toml` | [Styio Five Layer Pipeline](./FIVE-LAYER-PIPELINE.toml) | Define Lexer to Parser(AST) to StyioIR to LLVM IR to stdout golden comparison. |
+| `PROMOTE-NIGHTLY-PARSER-SUBSET.md` | [Promote Nightly Parser Subset](./PROMOTE-NIGHTLY-PARSER-SUBSET.md) | Move a grammar slice into the nightly parser while keeping legacy parity and shadow gates intact. |
+| `PROMOTE-NIGHTLY-PARSER-SUBSET.toml` | [Promote Nightly Parser Subset](./PROMOTE-NIGHTLY-PARSER-SUBSET.toml) | Move a grammar slice into the nightly parser while keeping legacy parity and shadow gates intact. |
 | `REPO-HYGIENE-COMMIT-STANDARD.md` | [Styio 仓库清理与提交标准](./REPO-HYGIENE-COMMIT-STANDARD.md) | 约束 Styio 仓库的本地清理、.gitignore、提交前检查、push 前检查、历史重写与 force-push 边界；不定义语言语义与功能重构步骤（见 CHECKPOINT-WORKFLOW.md / ../docs/assets/templates/REFACTOR-WORKFLOW-TEMPLATE.md）。 |
 | `REPO-HYGIENE-COMMIT-STANDARD.toml` | [Repo Hygiene Commit Standard](./REPO-HYGIENE-COMMIT-STANDARD.toml) | Constrain local cleanup, ignored outputs, pre-commit checks, push checks, and history rewrite boundaries. |
 | `TEAM-RUNBOOK-MAINTENANCE-GATE.md` | [Team Runbook Maintenance Gate](./TEAM-RUNBOOK-MAINTENANCE-GATE.md) | Define the delivery gate that requires team runbooks under docs/teams/ to be updated and kept in the standard template shape when files in corresponding team-owned folders are added, modified, renamed, or deleted. |

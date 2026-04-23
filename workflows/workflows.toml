@@ -3,9 +3,24 @@ purpose = "Registry of root-level workflow TOML definitions and repo-local skill
 last_updated = "2026-04-23"
 
 [[workflow]]
+id = "add-repo-file"
+file = "ADD-REPO-FILE.toml"
+doc = "ADD-REPO-FILE.md"
+
+[[workflow]]
+id = "add-resource-identifier"
+file = "ADD-RESOURCE-IDENTIFIER.toml"
+doc = "ADD-RESOURCE-IDENTIFIER.md"
+
+[[workflow]]
 id = "add-syntax-with-skills"
 file = "ADD-SYNTAX-WITH-SKILLS.toml"
 doc = "ADD-SYNTAX-WITH-SKILLS.md"
+
+[[workflow]]
+id = "change-bootstrap-env"
+file = "CHANGE-BOOTSTRAP-ENV.toml"
+doc = "CHANGE-BOOTSTRAP-ENV.md"
 
 [[workflow]]
 id = "checkpoint-health"
@@ -38,6 +53,11 @@ file = "FIVE-LAYER-PIPELINE.toml"
 doc = "FIVE-LAYER-PIPELINE.md"
 
 [[workflow]]
+id = "promote-nightly-parser-subset"
+file = "PROMOTE-NIGHTLY-PARSER-SUBSET.toml"
+doc = "PROMOTE-NIGHTLY-PARSER-SUBSET.md"
+
+[[workflow]]
 id = "repo-hygiene-commit-standard"
 file = "REPO-HYGIENE-COMMIT-STANDARD.toml"
 doc = "REPO-HYGIENE-COMMIT-STANDARD.md"
@@ -51,6 +71,22 @@ doc = "TEAM-RUNBOOK-MAINTENANCE-GATE.md"
 id = "test-catalog"
 file = "TEST-CATALOG.toml"
 doc = "TEST-CATALOG.md"
+
+[[skill]]
+id = "styio-env-bootstrap"
+file = "skills/styio-env-bootstrap/skill.toml"
+
+[[skill]]
+id = "styio-file-onboarding"
+file = "skills/styio-file-onboarding/skill.toml"
+
+[[skill]]
+id = "styio-parser-subset"
+file = "skills/styio-parser-subset/skill.toml"
+
+[[skill]]
+id = "styio-resource-identifier-change"
+file = "skills/styio-resource-identifier-change/skill.toml"
 
 [[skill]]
 id = "styio-syntax-change"

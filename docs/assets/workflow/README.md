@@ -2,13 +2,14 @@
 
 **Purpose:** Define the scope of reusable workflow documents under `docs/assets/workflow/`; the generated inventory lives in [INDEX.md](./INDEX.md).
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-23
 
 ## Scope
 
 1. Store reusable engineering workflows, test-framework guides, and repository hygiene rules here.
 2. Keep one-off execution logs out of this directory.
 3. Workflow changes should be reflected in automation and validation entry points.
+4. Root `workflows/` stays canonical for machine-readable TOML; this directory keeps human-facing mirrors where useful.
 
 ## Usage Rules
 
