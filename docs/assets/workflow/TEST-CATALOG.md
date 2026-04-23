@@ -254,6 +254,7 @@ ctest --test-dir build -L milestone
 | 目标 | 说明 | Automation |
 |------|------|------------|
 | `docs_audit` | `scripts/docs-audit.py`：无参模式校验 `docs/**/*.md` 的 `Purpose` / `Last updated` 元数据、collection-directory `README.md + INDEX.md` 入口、`docs/history` / `docs/adr` / `docs/milestones` 命名规则、active doc 相对链接有效性，以及 `scripts/docs-index.py --check` 与 `scripts/docs-lifecycle.py validate` 的门禁状态；`--manifest valid/invalid` 模式负责仓库级 Markdown 清单、树形输出、JSON 导出与无效文档审查 | `ctest --test-dir build -L docs` 或 `ctest --test-dir build -R '^docs_audit$'` |
+| `bootstrap_dev_env_dependency_scope` | `scripts/bootstrap-dev-env.sh --help` 与 `docs/BUILD-AND-DEV-ENV.md` 必须声明 bootstrap 只准备环境依赖，不执行 configure/build/test/commit/push。 | `ctest --test-dir build -R '^bootstrap_dev_env_dependency_scope$'` |
 
 **生成命令：** `python3 scripts/docs-index.py --write`。  
 **本地校验：** `python3 scripts/docs-lifecycle.py validate && python3 scripts/docs-audit.py`。  

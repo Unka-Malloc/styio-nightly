@@ -15,8 +15,11 @@ usage() {
   cat <<EOF
 Usage: $(basename "$0")
 
-Install the Debian/Ubuntu packages required to build, test, and maintain
-styio-nightly on a fresh Linux container or VM.
+Prepare the Debian/Ubuntu environment dependencies required to build, test,
+and maintain styio-nightly on a fresh Linux container or VM.
+
+This script installs dependencies only. It does not configure, build, test,
+commit, or push the repository.
 
 Optional environment:
   STYIO_NIGHTLY_TOOL_VENV   Python virtualenv used for lit
@@ -167,7 +170,7 @@ install_lit() {
 print_summary() {
   cat <<EOF
 
-styio-nightly bootstrap complete.
+styio-nightly environment dependencies are ready.
 
 Standardized baseline:
   Debian:        $DEBIAN_STANDARD_VERSION (trixie)
@@ -182,7 +185,7 @@ Suggested shell exports:
   export LLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm
   export PATH="$TOOL_VENV/bin:\$PATH"
 
-Typical next steps:
+Build and test steps are intentionally separate. Typical next steps:
   cmake -S "$ROOT" -B "$ROOT/build"
   cmake --build "$ROOT/build" -j"$(nproc)"
 EOF

@@ -28,4 +28,4 @@
 
 | Path | Entry | Summary |
 |------|-------|---------|
-| `BUILD-AND-DEV-ENV.md` | [Styio Build And Dev Environment](./BUILD-AND-DEV-ENV.md) | Provide the repository-level entry point for bootstrapping a fresh machine, configuring the compiler build, and finding the next subsystem-specific docs. |
+| `BUILD-AND-DEV-ENV.md` | [Styio Build And Dev Environment](./BUILD-AND-DEV-ENV.md) | Provide the repository-level entry point for preparing environment dependencies on a fresh machine and finding the next subsystem-specific docs. |

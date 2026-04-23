@@ -1984,6 +1984,9 @@ private:
   }
 
 public:
+  static constexpr const char* OneShotContinuationResumeName = "__styio_resume_oneshot";
+  static constexpr const char* CallableApplyName = "__styio_resume_oneshot";
+
   StyioAST* func_callee = nullptr;
   NameAST* func_name = nullptr;
   vector<StyioAST*> func_args;
@@ -2024,9 +2027,29 @@ public:
     return new FuncCallAST(func_callee, func_name, arguments);
   }
 
+  static FuncCallAST* CreateCallable(
+    StyioAST* func_callee,
+    vector<StyioAST*> arguments
+  ) {
+    return new FuncCallAST(
+      func_callee,
+      NameAST::Create(CallableApplyName),
+      arguments);
+  }
+
   void setFuncCallee(StyioAST* callee) {
     func_callee_owner_.reset(callee);
     func_callee = func_callee_owner_.get();
+  }
+
+  bool isCallableApply() const {
+    return isOneShotContinuationResume();
+  }
+
+  bool isOneShotContinuationResume() const {
+    return func_callee != nullptr
+           && func_name != nullptr
+           && func_name->getAsStr() == OneShotContinuationResumeName;
   }
 
   NameAST* getFuncName() {

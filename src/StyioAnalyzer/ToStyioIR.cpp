@@ -1754,6 +1754,12 @@ StyioAnalyzer::toStyioIR(FuncCallAST* ast) {
       std::move(args));
   }
 
+  if (ast->isCallableApply()) {
+    throw StyioTypeError(
+      "one-shot continuation resume `<|` requires continuation lowering; "
+      "captured continuations must be resumed or discontinued exactly once");
+  }
+
   auto def_it = func_defs.find(ast->getNameAsStr());
   if (def_it == func_defs.end()) {
     throw StyioTypeError("unknown function `" + ast->getNameAsStr() + "`");

@@ -506,7 +506,15 @@ StyioTokenizer::tokenize(std::string code) {
 
       // 124
       case '|': {
-        if (loc + 1 < code.size() && code.at(loc + 1) == ']') {
+        if (loc + 2 < code.size() && code.at(loc + 1) == '<' && code.at(loc + 2) == '|') {
+          tokens.push_back(StyioToken::Create(StyioTokenType::RETURN_PIPE, "|<|"));
+          loc += 3;
+        }
+        else if (loc + 1 < code.size() && code.at(loc + 1) == ';') {
+          tokens.push_back(StyioToken::Create(StyioTokenType::PIPE_SEMICOLON, "|;"));
+          loc += 2;
+        }
+        else if (loc + 1 < code.size() && code.at(loc + 1) == ']') {
           tokens.push_back(StyioToken::Create(StyioTokenType::BOUNDED_BUFFER_CLOSE, "|]"));
           loc += 2;
         }

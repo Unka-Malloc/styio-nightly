@@ -7,6 +7,7 @@ import json
 import re
 import subprocess
 import sys
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence
@@ -169,6 +170,8 @@ def classify_markdown(path: Path) -> ManifestEntry:
         return ManifestEntry(path, "valid", "approved benchmark documentation", character_count, word_count)
     if has_prefix(path, Path("templates")):
         return ManifestEntry(path, "valid", "approved reusable template documentation", character_count, word_count)
+    if has_prefix(path, Path("workflows")):
+        return ManifestEntry(path, "valid", "approved root workflow documentation and skills", character_count, word_count)
     if rel == "grammar/tree-sitter-styio/README.md":
         return ManifestEntry(
             path,
@@ -567,6 +570,40 @@ def check_team_docs_gate(errors: List[str]) -> None:
         errors.append(f"team docs gate failed: {detail}")
 
 
+def check_workflow_toml(errors: List[str]) -> None:
+    workflows = ROOT / "workflows"
+    if not workflows.exists():
+        return
+
+    registry = workflows / "workflows.toml"
+    if not registry.exists():
+        errors.append("missing root workflow registry: workflows/workflows.toml")
+
+    for doc in sorted(workflows.glob("*.md")):
+        if doc.name in {"README.md", "INDEX.md"}:
+            continue
+        workflow_toml = doc.with_suffix(".toml")
+        if not workflow_toml.exists():
+            errors.append(f"missing TOML workflow definition for {doc.relative_to(ROOT)}")
+
+    for path in workflows.rglob("*.toml"):
+        try:
+            tomllib.loads(path.read_text(encoding="utf-8"))
+        except tomllib.TOMLDecodeError as exc:
+            errors.append(f"invalid TOML in {path.relative_to(ROOT)}: {exc}")
+
+    for path in workflows.rglob("*.yaml"):
+        errors.append(f"YAML is not allowed for workflow/skill metadata: {path.relative_to(ROOT)}")
+    for path in workflows.rglob("*.yml"):
+        errors.append(f"YAML is not allowed for workflow/skill metadata: {path.relative_to(ROOT)}")
+
+    skills_dir = workflows / "skills"
+    if skills_dir.exists():
+        for skill_dir in sorted(child for child in skills_dir.iterdir() if child.is_dir()):
+            if not (skill_dir / "skill.toml").exists():
+                errors.append(f"missing skill.toml: {skill_dir.relative_to(ROOT)}")
+
+
 def run_audit() -> int:
     errors: List[str] = []
     check_collection_dirs(errors)
@@ -576,6 +613,7 @@ def run_audit() -> int:
     check_generated_indexes(errors)
     check_lifecycle(errors)
     check_team_docs_gate(errors)
+    check_workflow_toml(errors)
 
     if errors:
         print("docs audit failed:", file=sys.stderr)

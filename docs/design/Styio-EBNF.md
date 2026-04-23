@@ -2,7 +2,7 @@
 
 **Purpose:** 词法与语法的 **EBNF 权威定义**；资源拓扑相关附录与叙述以 [`Styio-Resource-Topology.md`](./Styio-Resource-Topology.md) 为准，语义细节以 [`Styio-Language-Design.md`](./Styio-Language-Design.md) 为准。
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-23
 
 **Version:** 1.0-draft  
 **Date:** 2026-03-28  
@@ -69,6 +69,8 @@ TOK_MATCH          = '?=' ;
 
 (* Yield / Return *)
 TOK_YIELD          = '<|' ;
+TOK_INLINE_RETURN  = '|<|' ;
+TOK_PIPE_SEMI      = '|;' ;
 
 (* Pipe *)
 TOK_PIPE           = '>>' ;
@@ -149,7 +151,9 @@ block_comment      = '/*' { any_char } '*/' ;
 ## 3. Program Structure
 
 ```ebnf
-program            = { top_level_statement } EOF ;
+program            = { top_level_statement [ statement_sep ] } EOF ;
+
+statement_sep      = ';' | '|;' ;
 
 top_level_statement = import_declaration
                     | statement ;
@@ -259,9 +263,10 @@ consumer           = [ closure_sig ] '=>' ( block | expression )
 
 closure_sig        = '#' '(' [ param_list ] ')' ;
 
-block              = '{' { statement } [ yield_expr ] '}' ;
+block              = '{' { statement [ statement_sep ] } [ yield_expr [ statement_sep ] ] '}' ;
 
-yield_expr         = '<|' expression ;
+yield_expr         = '<|' expression
+                   | '|<|' expression ;
 ```
 
 ### 7.1 Stream Zip (Aligned Sync)
@@ -304,7 +309,7 @@ instant_pull       = '(' '<<' resource ')' ;
 | 9 | `\|\|` | Left |
 | 10 | `>>`, `?=` | Left |
 | 11 | `<~`, `~>` | Right |
-| 12 | `<\|` | Right |
+| 12 | `<\|` | Left |
 | 13 | `\|` (fallback) | Left |
 | 14 | `??` (diagnostic) | Left |
 | 15 (lowest) | `=`, `+=`, etc. | Right |
@@ -312,7 +317,9 @@ instant_pull       = '(' '<<' resource ')' ;
 ### 8.2 Expression Grammar
 
 ```ebnf
-expression         = wave_expr ;
+expression         = apply_expr ;
+
+apply_expr         = wave_expr { '<|' wave_expr } ;  (* left associative; one-shot continuation resume when lhs is captured *)
 
 wave_expr          = logic_or_expr [ ( '<~' | '~>' ) logic_or_expr '|' logic_or_expr ] ;
 

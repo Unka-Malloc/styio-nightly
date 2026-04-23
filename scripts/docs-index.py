@@ -5,6 +5,7 @@ import argparse
 import os
 import re
 import sys
+import tomllib
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -37,7 +38,30 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def read_toml(path: Path) -> dict:
+    return tomllib.loads(read_text(path))
+
+
+def toml_scalar(data: dict, *keys: str) -> Optional[str]:
+    for key in keys:
+        value: object = data
+        for part in key.split("."):
+            if not isinstance(value, dict) or part not in value:
+                value = None
+                break
+            value = value[part]
+        if isinstance(value, str) and value.strip():
+            return value
+    return None
+
+
 def extract_title(path: Path) -> str:
+    if path.suffix == ".toml":
+        data = read_toml(path)
+        return compact_plain(
+            toml_scalar(data, "title", "workflow.title", "skill.display_name", "skill.name", "interface.display_name", "id")
+            or path.stem
+        )
     match = TITLE_RE.search(read_text(path))
     if not match:
         return path.stem
@@ -45,13 +69,29 @@ def extract_title(path: Path) -> str:
 
 
 def extract_purpose(path: Path) -> str:
-    match = PURPOSE_RE.search(read_text(path))
+    text = read_text(path)
+    if path.suffix == ".toml":
+        data = tomllib.loads(text)
+        return compact_plain(
+            toml_scalar(data, "purpose", "description", "workflow.purpose", "skill.description", "interface.short_description")
+            or f"Inventory entry for `{path.name}`."
+        )
+    match = PURPOSE_RE.search(text)
     if not match:
+        frontmatter = re.search(r"^---\n(.*?)\n---", text, flags=re.S)
+        if frontmatter:
+            desc = re.search(r"^description:\s+(.+?)\s*$", frontmatter.group(1), flags=re.M)
+            if desc:
+                return compact_plain(desc.group(1).strip().strip("\"'"))
         return f"Inventory entry for `{path.name}`."
     return compact_plain(match.group(1))
 
 
 def extract_last_updated(path: Path) -> str:
+    if path.suffix == ".toml":
+        value = toml_scalar(read_toml(path), "last_updated", "workflow.last_updated", "skill.last_updated")
+        if value:
+            return value
     match = LAST_UPDATED_RE.search(read_text(path))
     if match:
         return match.group(1)
@@ -76,7 +116,7 @@ def rel_link(from_dir: Path, target: Path) -> str:
 
 
 def choose_dir_entry(path: Path) -> Optional[Path]:
-    for name in ("INDEX.md", "README.md", "00-Milestone-Index.md"):
+    for name in ("INDEX.md", "README.md", "00-Milestone-Index.md", "skill.toml", "workflow.toml"):
         candidate = path / name
         if candidate.exists():
             return candidate
@@ -84,7 +124,7 @@ def choose_dir_entry(path: Path) -> Optional[Path]:
 
 
 def choose_dir_summary_source(path: Path) -> Optional[Path]:
-    for name in ("README.md", "INDEX.md", "00-Milestone-Index.md"):
+    for name in ("README.md", "INDEX.md", "00-Milestone-Index.md", "skill.toml", "workflow.toml"):
         candidate = path / name
         if candidate.exists():
             return candidate
@@ -116,7 +156,7 @@ def build_entries(base: Path) -> List[Entry]:
             last_updated = extract_last_updated(summary_source)
             entries.append(Entry(rel_path, link_target, label, summary, True, last_updated))
             continue
-        if child.suffix != ".md":
+        if child.suffix not in {".md", ".toml"}:
             continue
         rel_path = child.name
         link_target = rel_link(base, child)

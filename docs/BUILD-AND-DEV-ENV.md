@@ -1,13 +1,13 @@
 # Styio Build And Dev Environment
 
-**Purpose:** Provide the repository-level entry point for bootstrapping a fresh machine, configuring the compiler build, and finding the next subsystem-specific docs.
+**Purpose:** Provide the repository-level entry point for preparing environment dependencies on a fresh machine and finding the next subsystem-specific docs.
 
-**Last updated:** 2026-04-19
+**Last updated:** 2026-04-23
 
 ## Who This Is For
 
-1. Contributors bringing up `styio-nightly` on a fresh Debian/Ubuntu VM or container.
-2. Contributors who need the common compiler build, test, and docs-audit commands.
+1. Contributors preparing `styio-nightly` dependencies on a fresh Debian/Ubuntu VM or container.
+2. Contributors who need the common compiler build, test, and docs-audit commands after bootstrap.
 3. IDE/LSP contributors who need the repo-level prerequisites before following `docs/external/for-ide/`.
 
 ## Fresh Machine Bootstrap
@@ -19,6 +19,12 @@ On a fresh Debian/Ubuntu host, start from the repository root:
 ```
 
 That script installs the common native toolchain used by this repository, including `clang-18`, `lld-18`, `llvm-18-dev`, `cmake`, `ninja`, `python3`, the official Node.js `v24.15.0` LTS binary line, and a local `lit` venv for test tooling.
+
+Bootstrap scope:
+
+1. It prepares system and tool dependencies.
+2. It does not configure, build, test, commit, or push the repository.
+3. After it finishes, export the printed environment variables before running build commands.
 
 ## Standardized Baseline
 

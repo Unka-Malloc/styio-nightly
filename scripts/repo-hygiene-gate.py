@@ -126,7 +126,7 @@ REQUIRED_DOC_REFERENCES = {
         "scripts/docs-lifecycle.py",
         "scripts/docs-audit.py",
     ],
-    Path("docs/assets/workflow/REPO-HYGIENE-COMMIT-STANDARD.md"): [
+    Path("workflows/REPO-HYGIENE-COMMIT-STANDARD.md"): [
         "scripts/repo-hygiene-gate.py",
         "scripts/delivery-gate.sh",
     ],

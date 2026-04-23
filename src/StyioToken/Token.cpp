@@ -842,6 +842,12 @@ StyioToken::getTokName(StyioTokenType type) {
     case StyioTokenType::YIELD_PIPE:
       return "<|";
 
+    case StyioTokenType::RETURN_PIPE:
+      return "|<|";
+
+    case StyioTokenType::PIPE_SEMICOLON:
+      return "|;";
+
     case StyioTokenType::INFINITE_LIST:
       return "[...]";
 

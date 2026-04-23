@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of `styio_ide_core`, `styio_lspd`, IDE-facing C++ APIs, VFS snapshots, syntax/HIR/SemDB services, and LSP protocol behavior.
 
-**Last updated:** 2026-04-22
+**Last updated:** 2026-04-23
 
 ## Mission
 
@@ -35,6 +35,7 @@ Build and test targets:
 8. Tree-sitter maintenance instructions in `docs/external/for-ide/BUILD.md` must keep using the repository-standard Node.js `v24.15.0` LTS line instead of a floating `stable` or distro-default Node release.
 9. Keep builtin/default-symbol completions sourced from the shared compiler-owned symbol registry under `src/StyioParser/`; do not reintroduce a private IDE-only builtin or keyword table.
 10. Preserve the M18 runtime scheduling contract: request-loop drains are budgeted, foreground work yields over queued background reindexing, and explicit idle slices drain semantic diagnostics before background work.
+11. Mirror lexer token additions in the tolerant syntax layer so edit-time diagnostics and grouping do not drift from compiler tokenization.
 
 ## Change Classes
 

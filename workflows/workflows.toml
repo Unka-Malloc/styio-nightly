@@ -1,0 +1,57 @@
+title = "Styio Workflows Registry"
+purpose = "Registry of root-level workflow TOML definitions and repo-local skills."
+last_updated = "2026-04-23"
+
+[[workflow]]
+id = "add-syntax-with-skills"
+file = "ADD-SYNTAX-WITH-SKILLS.toml"
+doc = "ADD-SYNTAX-WITH-SKILLS.md"
+
+[[workflow]]
+id = "checkpoint-health"
+file = "CHECKPOINT-HEALTH.toml"
+doc = "CHECKPOINT-HEALTH.md"
+
+[[workflow]]
+id = "checkpoint-workflow"
+file = "CHECKPOINT-WORKFLOW.toml"
+doc = "CHECKPOINT-WORKFLOW.md"
+
+[[workflow]]
+id = "delivery-gate"
+file = "DELIVERY-GATE.toml"
+doc = "DELIVERY-GATE.md"
+
+[[workflow]]
+id = "docs-gate"
+file = "DOCS-GATE.toml"
+doc = "DOCS-GATE.md"
+
+[[workflow]]
+id = "docs-maintenance"
+file = "DOCS-MAINTENANCE-WORKFLOW.toml"
+doc = "DOCS-MAINTENANCE-WORKFLOW.md"
+
+[[workflow]]
+id = "five-layer-pipeline"
+file = "FIVE-LAYER-PIPELINE.toml"
+doc = "FIVE-LAYER-PIPELINE.md"
+
+[[workflow]]
+id = "repo-hygiene-commit-standard"
+file = "REPO-HYGIENE-COMMIT-STANDARD.toml"
+doc = "REPO-HYGIENE-COMMIT-STANDARD.md"
+
+[[workflow]]
+id = "team-runbook-maintenance-gate"
+file = "TEAM-RUNBOOK-MAINTENANCE-GATE.toml"
+doc = "TEAM-RUNBOOK-MAINTENANCE-GATE.md"
+
+[[workflow]]
+id = "test-catalog"
+file = "TEST-CATALOG.toml"
+doc = "TEST-CATALOG.md"
+
+[[skill]]
+id = "styio-syntax-change"
+file = "skills/styio-syntax-change/skill.toml"

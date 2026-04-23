@@ -10,4 +10,5 @@
 
 | Path | Entry | Summary |
 |------|-------|---------|
+| `CONTINUATION_TRANSFER.md` | [Continuation Transfer](./CONTINUATION_TRANSFER.md) | Define the compact syntax and one-shot lifecycle for continuation transfer. |
 | `RESOURCE_IDENTIFIERS.md` | [Resource Identifiers](./RESOURCE_IDENTIFIERS.md) | Define the current implemented Styio resource identifier surface as compact built-in symbolic definitions. |

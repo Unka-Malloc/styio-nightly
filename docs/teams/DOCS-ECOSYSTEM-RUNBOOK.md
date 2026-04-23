@@ -17,20 +17,21 @@ Primary paths:
 3. `docs/assets/`
 4. `docs/rollups/`
 5. `docs/archive/`
-6. `templates/`
-7. `scripts/docs-index.py`
-8. `scripts/docs-audit.py`
-9. `scripts/docs-scaffold.py`
-10. `scripts/docs_config.py`
-11. `scripts/docs-lifecycle.py`
-12. `scripts/team-docs-gate.py`
-13. `scripts/delivery-gate.sh`
+6. `workflows/`
+7. `templates/`
+8. `scripts/docs-index.py`
+9. `scripts/docs-audit.py`
+10. `scripts/docs-scaffold.py`
+11. `scripts/docs_config.py`
+12. `scripts/docs-lifecycle.py`
+13. `scripts/team-docs-gate.py`
+14. `scripts/delivery-gate.sh`
 
 Key SSOTs:
 
 1. [../specs/DOCUMENTATION-POLICY.md](../specs/DOCUMENTATION-POLICY.md)
 2. [../specs/REPOSITORY-MAP.md](../specs/REPOSITORY-MAP.md)
-3. [../assets/workflow/DOCS-MAINTENANCE-WORKFLOW.md](../assets/workflow/DOCS-MAINTENANCE-WORKFLOW.md)
+3. [../../workflows/DOCS-MAINTENANCE-WORKFLOW.md](../../workflows/DOCS-MAINTENANCE-WORKFLOW.md)
 
 ## Daily Workflow
 
@@ -56,6 +57,9 @@ Key SSOTs:
 20. Keep [../specs/POST-COMMIT-CI-CHECKS.md](../specs/POST-COMMIT-CI-CHECKS.md) aligned with actual GitHub Actions monitoring practice whenever commit, push, or CI handoff rules change.
 21. Keep GitHub Actions sibling checkouts for `styio-spio` and `styio-view` pinned to the same branch ref as `styio-nightly` when a workflow runs cross-repository gates.
 22. Keep compact syntax references under `docs/design/syntax/` short and defer semantic detail to the owning design SSOT.
+23. When syntax tokens change, update the compact syntax page, EBNF, and symbol reference together before regenerating indexes.
+24. Keep root `workflows/`, `workflows/skills/`, `scripts/docs_config.py`, and docs-audit approved path rules aligned whenever reusable workflows move or new repo-local skills are added.
+25. Workflow and skill machine-readable definitions must use TOML (`*.toml`, `skill.toml`, and `agents/openai.toml`); Markdown remains explanatory only.
 
 ## Change Classes
 

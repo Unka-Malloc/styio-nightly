@@ -244,6 +244,16 @@ The base continue is 2 characters (`>>`). Each additional `>` skips one more nes
 
 `<|` pushes a value out of the current block. When used in control flow that is part of an assignment, it produces the value for the enclosing expression.
 
+In expression position, `<|` applies a value to a callable/continuation from left to right:
+
+```
+make_discount <| 100 <| 150 == make_discount(100)(150)
+```
+
+Captured continuations follow the OCaml-style one-shot discipline: a suspended continuation must be resumed or discontinued exactly once. Resuming it consumes it; resuming it again is an error. While suspended, it keeps captured scope data and resources alive until resume/discontinue unwinds the frame.
+
+For compressed one-line blocks, `|<| value |;` is the inline return spelling. `|>` and `|<-` remain reserved.
+
 When multiple branches yield (e.g., in `?=`), the compiler generates LLVM `phi` nodes at the merge point.
 
 ---

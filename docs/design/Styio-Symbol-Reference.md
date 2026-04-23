@@ -2,7 +2,7 @@
 
 **Purpose:** 各符号的 **lexer token 名与物理含义速查表**；完整语义与章节论证见 [`Styio-Language-Design.md`](./Styio-Language-Design.md)。实现 `enum class TokenKind` 时以本文与 EBNF 对照。
 
-**Last updated:** 2026-04-08
+**Last updated:** 2026-04-23
 
 **Version:** 1.0-draft  
 **Date:** 2026-03-28
@@ -31,7 +31,9 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | `->` | Forward / Redirect | `TOK_ARROW_RIGHT` | Redirect data to a physical destination | `ma5 -> @database(...)` |
 | `<-` | Acquire Handle | `TOK_ARROW_LEFT` | Extract live handle from resource | `f <- @file{"data.txt"}` |
 | `<<` | Write / Shift-Back | `TOK_SHIFT_BACK` | **In `[<<, n]`:** history probe. **Standalone:** write to resource. **In `(<< @res)`:** instant pull. |
-| `<\|` | Yield / Return | `TOK_YIELD` | Push value out of block (expression return) | `<\| x * x` |
+| `<\|` | Return / One-Shot Apply | `YIELD_PIPE` | **Statement start:** return value from block. **Infix:** left-associative one-shot resume/apply; `f <\| a <\| b == f(a)(b)`. | `<\| x * x`, `f <\| 1` |
+| `\|<\|` | Inline Return | `RETURN_PIPE` | One-line return form, ended by `\|;`. | `...; \|<\| result \|;` |
+| `\|;` | Statement Separator | `PIPE_SEMICOLON` | Explicit separator for compressed one-line blocks. | `x = 1; \|<\| x \|;` |
 | `>_` | Terminal Device | `TOK_IO_BUF` | **As statement:** `>_(expr)` prints to stdout (legacy). **As value:** first-class terminal device handle; `expr -> ( >_ )` writes stdout, `!(expr) -> ( >_ )` writes stderr, `<< ( >_ )` reads stdin. | `>_("hello")`, `42 -> ( >_ )` |
 
 ---
@@ -162,6 +164,7 @@ Styio has ~40 distinct symbolic constructs. This is comparable to APL/J but with
 
 - **`>` family:** `>`, `>>`, `>>>`, `>=`, `>_`, `~>`
 - **`<` family:** `<`, `<<`, `<=`, `<-`, `<|`, `<~`, `<:`
+- **`|` family:** `|`, `||`, `|]`, `|<|`, `|;`
 - **`@` family:** `@`, `@[`, `@ident{...}`
 - **`$` family:** `$var`, `$(...)`, `$"..."`
 - **`?` family:** `?`, `?=`, `?(...)`, `??`

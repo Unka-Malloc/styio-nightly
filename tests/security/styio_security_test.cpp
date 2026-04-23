@@ -682,6 +682,19 @@ TEST(StyioSecurityLexer, VeryLongIdentifierCompletes) {
   free_tokens(tokens);
 }
 
+TEST(StyioSecurityLexer, TokenizesInlineReturnAndPipeSemicolon) {
+  auto tokens = StyioTokenizer::tokenize("|<| result |;");
+  ASSERT_GE(tokens.size(), 6u);
+  EXPECT_EQ(tokens[0]->type, StyioTokenType::RETURN_PIPE);
+  EXPECT_EQ(tokens[0]->original, "|<|");
+  EXPECT_EQ(tokens[2]->type, StyioTokenType::NAME);
+  EXPECT_EQ(tokens[2]->original, "result");
+  EXPECT_EQ(tokens[4]->type, StyioTokenType::PIPE_SEMICOLON);
+  EXPECT_EQ(tokens[4]->original, "|;");
+  EXPECT_EQ(tokens.back()->type, StyioTokenType::TOK_EOF);
+  free_tokens(tokens);
+}
+
 TEST(StyioSecurityParserLookahead, SkipTriviaFindsNextToken) {
   auto tokens = StyioTokenizer::tokenize("   // cmt\nfoo");
   ASSERT_FALSE(tokens.empty());
@@ -723,6 +736,26 @@ TEST(StyioSecurityNightlyParserExpr, UsesLeftAssociativeGroupingForEqualPreceden
   EXPECT_NE(repr.find("|- RHS: tax"), std::string::npos);
 }
 
+TEST(StyioSecurityNightlyParserExpr, ApplyPipeMatchesCurriedCallShape) {
+  const std::string pipe_repr =
+    parse_expr_to_repr_latest("make_discount <| 100 <| 150", true);
+  const std::string call_repr =
+    parse_expr_to_repr_latest("make_discount(100)(150)", true);
+
+  EXPECT_EQ(pipe_repr, call_repr);
+  EXPECT_NE(pipe_repr.find(FuncCallAST::CallableApplyName), std::string::npos);
+}
+
+TEST(StyioSecurityLegacyParserExpr, ApplyPipeMatchesCurriedCallShape) {
+  const std::string pipe_repr =
+    parse_expr_to_repr_latest("make_discount <| 100 <| 150", false);
+  const std::string call_repr =
+    parse_expr_to_repr_latest("make_discount(100)(150)", false);
+
+  EXPECT_EQ(pipe_repr, call_repr);
+  EXPECT_NE(pipe_repr.find(FuncCallAST::CallableApplyName), std::string::npos);
+}
+
 TEST(StyioSecurityNightlyParserExpr, SubsetTokenGateIncludesCompareAndLogic) {
   EXPECT_TRUE(styio_parser_expr_subset_token_nightly(StyioTokenType::BINOP_GT));
   EXPECT_TRUE(styio_parser_expr_subset_token_nightly(StyioTokenType::BINOP_GE));
@@ -734,6 +767,7 @@ TEST(StyioSecurityNightlyParserExpr, SubsetTokenGateIncludesCompareAndLogic) {
   EXPECT_TRUE(styio_parser_expr_subset_token_nightly(StyioTokenType::BINOP_NE));
   EXPECT_TRUE(styio_parser_expr_subset_token_nightly(StyioTokenType::LOGIC_AND));
   EXPECT_TRUE(styio_parser_expr_subset_token_nightly(StyioTokenType::LOGIC_OR));
+  EXPECT_TRUE(styio_parser_expr_subset_token_nightly(StyioTokenType::YIELD_PIPE));
 }
 
 TEST(StyioSecurityNightlyParserExpr, SubsetTokenGateIncludesDotCallTokens) {
@@ -798,6 +832,9 @@ TEST(StyioSecurityNightlyParserStmt, SubsetTokenGateIncludesFunctionDefTokens) {
   EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::EXTRACTOR));
   EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::TOK_HAT));
   EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::YIELD_PIPE));
+  EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::RETURN_PIPE));
+  EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::PIPE_SEMICOLON));
+  EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::TOK_SEMICOLON));
   EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::ELLIPSIS));
   EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::BOUNDED_BUFFER_OPEN));
   EXPECT_TRUE(styio_parser_stmt_subset_token_nightly(StyioTokenType::BOUNDED_BUFFER_CLOSE));
@@ -815,8 +852,19 @@ TEST(StyioSecurityNightlyParserStmt, SubsetStartGateIncludesBlockAndControlStart
   EXPECT_TRUE(styio_parser_stmt_subset_start_nightly(StyioTokenType::EXTRACTOR));
   EXPECT_TRUE(styio_parser_stmt_subset_start_nightly(StyioTokenType::TOK_HAT));
   EXPECT_TRUE(styio_parser_stmt_subset_start_nightly(StyioTokenType::YIELD_PIPE));
+  EXPECT_TRUE(styio_parser_stmt_subset_start_nightly(StyioTokenType::RETURN_PIPE));
   EXPECT_TRUE(styio_parser_stmt_subset_start_nightly(StyioTokenType::ELLIPSIS));
   EXPECT_TRUE(styio_parser_stmt_subset_start_nightly(StyioTokenType::ITERATOR));
+}
+
+TEST(StyioSecurityNightlyParserStmt, ParsesInlineReturnAndStatementSeparators) {
+  const std::string src =
+    "# discount := (base: i32) => { fee = base / 10; |<| base - fee |; }\n"
+    ">_(discount <| 100)\n";
+  const std::string repr = parse_program_to_repr_latest(src, true);
+
+  EXPECT_NE(repr.find("styio.ast.return"), std::string::npos);
+  EXPECT_NE(repr.find("discount"), std::string::npos);
 }
 
 TEST(StyioSecurityNightlyParserStmt, MatchesLegacyOnFlexBindSubsetSamples) {
@@ -927,6 +975,24 @@ TEST(StyioSecurityNightlySemantics, RejectsUserFunctionArityMismatchDuringTypech
     EXPECT_THROW(
       parse_typecheck_program_engine_latest(src, StyioParserEngine::Nightly),
       StyioTypeError) << src;
+  }
+}
+
+TEST(StyioSecurityNightlySemantics, RejectsOneShotContinuationResumeBeforeLowering) {
+  const std::vector<std::string> samples = {
+    "# id := (x: i32) => x\nx = id <| 1 <| 2\n",
+    "# id := (x: i32) => x\nx = id(1)(2)\n",
+  };
+
+  for (const auto& src : samples) {
+    try {
+      parse_typecheck_program_engine_latest(src, StyioParserEngine::Nightly);
+      FAIL() << "expected one-shot continuation lowering error for " << src;
+    } catch (const StyioTypeError& ex) {
+      const std::string msg = ex.what();
+      EXPECT_NE(msg.find("one-shot continuation resume"), std::string::npos) << msg;
+      EXPECT_NE(msg.find("exactly once"), std::string::npos) << msg;
+    }
   }
 }
 

@@ -7,6 +7,13 @@ add_test(
 )
 set_tests_properties(docs_audit PROPERTIES LABELS "docs")
 
+add_test(
+  NAME bootstrap_dev_env_dependency_scope
+  COMMAND bash -c "bash -n \"${CMAKE_SOURCE_DIR}/scripts/bootstrap-dev-env.sh\" && \"${CMAKE_SOURCE_DIR}/scripts/bootstrap-dev-env.sh\" --help | grep -q 'installs dependencies only' && \"${CMAKE_SOURCE_DIR}/scripts/bootstrap-dev-env.sh\" --help | grep -q 'does not configure, build, test' && grep -q 'Bootstrap scope:' \"${CMAKE_SOURCE_DIR}/docs/BUILD-AND-DEV-ENV.md\""
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
+set_tests_properties(bootstrap_dev_env_dependency_scope PROPERTIES LABELS "docs;workflow")
+
 # All milestone .styio sources live under tests/milestones/{m1,m2,...}
 set(STYIO_MS "${CMAKE_CURRENT_LIST_DIR}/milestones")
 set(STYIO_EXE "$<TARGET_FILE:styio>")

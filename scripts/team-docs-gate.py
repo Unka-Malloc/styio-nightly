@@ -119,6 +119,7 @@ TEAM_RULES: tuple[TeamRule, ...] = (
         (
             "README.md",
             "docs/",
+            "workflows/",
             "templates/",
             "scripts/docs-index.py",
             "scripts/docs-audit.py",
@@ -145,7 +146,7 @@ TEAM_RUNBOOKS = {
 }
 DOC_STATS = Path("docs/teams/DOC-STATS.md")
 TEMPLATE_DOC = Path("docs/assets/templates/TEAM-RUNBOOK-TEMPLATE.md")
-GATE_DOC = Path("docs/assets/workflow/TEAM-RUNBOOK-MAINTENANCE-GATE.md")
+GATE_DOC = Path("workflows/TEAM-RUNBOOK-MAINTENANCE-GATE.md")
 
 TEAM_REQUIRED_HEADINGS: tuple[str, ...] = (
     "Mission",
