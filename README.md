@@ -58,15 +58,22 @@ styio-calc> quit
 
 ## 生态入口
 
-| Repository | Role |
-| --- | --- |
-| [styio-spio](https://github.com/eBioRing/styio-spio) | 包管理器、registry/cloud backend、repo-hosted control console |
-| [styio-dev-doc](https://github.com/eBioRing/styio-dev-doc) | 开发者文档 |
-| [styio-dev-env](https://github.com/eBioRing/styio-dev-env) | 标准开发环境 |
-| [styio-book](https://github.com/eBioRing/styio-book) | 产品白皮书 |
-| [styio-view](https://github.com/eBioRing/styio-view) | 面向用户的编辑与运行视图前端 |
-| [styio-examples](https://github.com/eBioRing/styio-examples) | 示例工程集合 |
-| [styio-ext-vsc](https://github.com/eBioRing/styio-ext-vsc) | VS Code 插件 |
+以下清单来自 eBioRing 组织当前公开的 Styio 相关仓库，最近核对时间为 2026-04-24。
+职责边界的权威说明见 [docs/specs/REPOSITORY-MAP.md](docs/specs/REPOSITORY-MAP.md)。
+
+| Repository | Role | Status |
+| --- | --- | --- |
+| [Styio](https://github.com/eBioRing/Styio) | 官方语言与编译器源仓，承载语言设计、编译器实现、CLI、测试与主文档入口 | Active |
+| [styio-platform](https://github.com/eBioRing/styio-platform) | 平台级产品/hosted surface 的整合入口；当前仍是轻量 bootstrap 仓库 | Active bootstrap |
+| [styio-spio](https://github.com/eBioRing/styio-spio) | 包管理器、registry/cloud backend、repo-hosted control console | Active |
+| [styio-audit](https://github.com/eBioRing/styio-audit) | 集中审计框架与 Styio audit modules | Active |
+| [styio-dev-doc](https://github.com/eBioRing/styio-dev-doc) | 开发者手册与 GitBook 文档源 | Active |
+| [styio-view](https://github.com/eBioRing/styio-view) | 面向用户的编辑器、运行视窗与前端 adapter | Active |
+| [styio-dev-env](https://github.com/eBioRing/styio-dev-env) | 标准开发环境、devcontainer 与 toolchain bootstrap | Active |
+| [styio-example](https://github.com/eBioRing/styio-example) | 示例工程集合 | Active bootstrap |
+| [styio-book](https://github.com/eBioRing/styio-book) | 产品白皮书、愿景与对外叙述 | Active |
+| [styio-ext-vsc](https://github.com/eBioRing/styio-ext-vsc) | VS Code 插件 | Active |
+| [styio-deprecated](https://github.com/eBioRing/styio-deprecated) | 旧实现历史归档；只作为迁移和考古参考 | Archived |
 
 当前三仓并行开发切面固定为：
 
@@ -101,7 +108,7 @@ styio-calc> quit
 ## 进一步阅读
 
 - 产品与愿景： [styio-book](https://github.com/eBioRing/styio-book)
-- 示例工程： [styio-examples](https://github.com/eBioRing/styio-examples)
+- 示例工程： [styio-example](https://github.com/eBioRing/styio-example)
 - 编辑器支持： [styio-ext-vsc](https://github.com/eBioRing/styio-ext-vsc)
 - 生态边界说明： [docs/specs/REPOSITORY-MAP.md](docs/specs/REPOSITORY-MAP.md)
 - 并行开发边界： [docs/specs/ECOSYSTEM-REPO-SPLIT-AND-PARALLEL-DEV.md](docs/specs/ECOSYSTEM-REPO-SPLIT-AND-PARALLEL-DEV.md)

@@ -65,6 +65,7 @@ Key SSOTs:
 28. When test coverage changes require `docs/assets/workflow/TEST-CATALOG.md`, keep the catalog as an evidence index and point behavior ownership back to the implementation or test-quality runbook instead of embedding new language semantics there.
 29. When language SSOT docs change token-count semantics, update the design page, EBNF, symbol reference, and test catalog in one checkpoint so docs readers do not see conflicting operator depth rules.
 30. When syntax is retired, document the cutover in active SSOT docs and add a dated revision note to affected archived milestone pages. Archive pages may preserve provenance, but active catalogs and tests must not keep retired examples as runnable acceptance cases.
+31. When the eBioRing Styio repository set changes, refresh the inventory with `gh repo list eBioRing --limit 200`, then update root `README.md`, [../specs/REPOSITORY-MAP.md](../specs/REPOSITORY-MAP.md), and any active ecosystem plan that names the old repository set.
 
 ## Change Classes
 
