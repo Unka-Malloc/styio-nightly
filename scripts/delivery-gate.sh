@@ -6,13 +6,15 @@ usage() {
 Usage: scripts/delivery-gate.sh [options]
 
 Run the common Styio delivery floor by composing repository hygiene, the docs
-gate, and checkpoint health into one entrypoint.
+gate, external audit, and checkpoint health into one entrypoint.
 
 Options:
   --mode <checkpoint|push>  Delivery mode (default: checkpoint)
   --base <ref>              Base ref for team-docs-gate branch checks
   --range <rev-range>       Explicit revision range for repo-hygiene push mode
   --skip-health             Skip checkpoint-health (docs/process-only deliveries)
+  --skip-audit              Skip external styio-audit gate
+  --audit-bin <path>        Explicit styio-audit executable
   --with-asan               Include the ASan/UBSan leg in checkpoint-health
   --with-fuzz               Include the fuzz-smoke leg in checkpoint-health
   --build-dir <dir>         Forwarded to checkpoint-health
@@ -42,8 +44,10 @@ MODE="checkpoint"
 BASE_REF=""
 REV_RANGE=""
 RUN_HEALTH=1
+RUN_AUDIT=1
 RUN_ASAN=0
 RUN_FUZZ=0
+AUDIT_BIN="${STYIO_AUDIT_BIN:-}"
 BUILD_DIR=""
 ASAN_BUILD_DIR=""
 FUZZ_BUILD_DIR=""
@@ -65,6 +69,14 @@ while [[ $# -gt 0 ]]; do
     --skip-health)
       RUN_HEALTH=0
       shift
+      ;;
+    --skip-audit)
+      RUN_AUDIT=0
+      shift
+      ;;
+    --audit-bin)
+      AUDIT_BIN="$2"
+      shift 2
       ;;
     --with-asan)
       RUN_ASAN=1
@@ -154,6 +166,29 @@ fi
 log "mode: ${MODE}"
 run_cmd "${REPO_CMD[@]}"
 run_cmd "${DOCS_GATE_CMD[@]}"
+
+if [[ "$RUN_AUDIT" -eq 1 ]]; then
+  if [[ -z "$AUDIT_BIN" ]]; then
+    if [[ -x "$ROOT/../styio-audit/bin/styio-audit" ]]; then
+      AUDIT_BIN="$ROOT/../styio-audit/bin/styio-audit"
+    elif [[ -x "/home/unka/styio-audit/bin/styio-audit" ]]; then
+      AUDIT_BIN="/home/unka/styio-audit/bin/styio-audit"
+    elif command -v styio-audit >/dev/null 2>&1; then
+      AUDIT_BIN="$(command -v styio-audit)"
+    fi
+  fi
+  if [[ -z "$AUDIT_BIN" || ! -x "$AUDIT_BIN" ]]; then
+    echo "styio-audit executable not found; set STYIO_AUDIT_BIN or pass --audit-bin" >&2
+    exit 2
+  fi
+  AUDIT_ROOT="$(cd "$(dirname "$AUDIT_BIN")/.." && pwd)"
+  if git -C "$AUDIT_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    log "styio-audit commit: $(git -C "$AUDIT_ROOT" rev-parse HEAD)"
+  fi
+  run_cmd "$AUDIT_BIN" gate --repo "$ROOT" --project styio
+else
+  log "styio-audit skipped"
+fi
 
 if [[ "$RUN_HEALTH" -eq 1 ]]; then
   run_cmd "${HEALTH_CMD[@]}"

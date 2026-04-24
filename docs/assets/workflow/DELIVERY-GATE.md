@@ -1,12 +1,12 @@
 # Styio Unified Delivery Gate
 
-**Purpose:** Define the common delivery-floor entrypoint for Styio so contributors can run repository hygiene, the unified docs gate, and checkpoint health through one command before checkpoint merge or branch delivery.
+**Purpose:** Define the common delivery-floor entrypoint for Styio so contributors can run repository hygiene, the unified docs gate, external `styio-audit`, and checkpoint health through one command before checkpoint merge or branch delivery.
 
 **Last updated:** 2026-04-16
 
 ## Goal
 
-`checkpoint-health.sh` is the inner recovery/test gate, but a real delivery also needs repository hygiene and docs/runbook discipline. This workflow defines the shared floor that must run before a checkpoint merges or a branch is handed off, while delegating docs/process checks to [DOCS-GATE.md](./DOCS-GATE.md).
+`checkpoint-health.sh` is the inner recovery/test gate, but a real delivery also needs repository hygiene, external audit, and docs/runbook discipline. This workflow defines the shared floor that must run before a checkpoint merges or a branch is handed off, while delegating docs/process checks to [DOCS-GATE.md](./DOCS-GATE.md).
 
 ## Command
 
@@ -28,19 +28,23 @@ Docs/process-only delivery:
 ./scripts/delivery-gate.sh --mode checkpoint --skip-health
 ```
 
+Use `--audit-bin ../styio-audit/bin/styio-audit` to force a specific audit checkout. Use `--skip-audit` only for explicitly scoped recovery where external audit is run separately.
+
 ## What It Runs
 
 `checkpoint` mode composes:
 
 1. `python3 scripts/repo-hygiene-gate.py --mode staged`
 2. `./scripts/docs-gate.sh --mode staged`
-3. `./scripts/checkpoint-health.sh --no-asan --no-fuzz`
+3. external `styio-audit gate --project styio`
+4. `./scripts/checkpoint-health.sh --no-asan --no-fuzz`
 
 `push` mode composes:
 
 1. `python3 scripts/repo-hygiene-gate.py --mode push`
 2. `./scripts/docs-gate.sh --mode push --base <ref>` where `<ref>` comes from `--base` or the branch upstream
-3. `./scripts/checkpoint-health.sh --no-asan --no-fuzz`
+3. external `styio-audit gate --project styio`
+4. `./scripts/checkpoint-health.sh --no-asan --no-fuzz`
 
 ## Options
 
