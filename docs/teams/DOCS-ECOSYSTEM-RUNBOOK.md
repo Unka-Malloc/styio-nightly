@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of repository documentation, generated indexes, archive/rollup lifecycle, templates, and external Styio ecosystem handoff material.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 ## Mission
 
@@ -58,9 +58,10 @@ Key SSOTs:
 21. Keep GitHub Actions sibling checkouts for `styio-spio` and `styio-view` pinned to the same branch ref as `styio-nightly` when a workflow runs cross-repository gates.
 22. Keep compact syntax references under `docs/design/syntax/` short and defer semantic detail to the owning design SSOT.
 23. When syntax tokens change, update the compact syntax page, EBNF, and symbol reference together before regenerating indexes.
-24. Keep root `workflows/`, `workflows/skills/`, `workflows/workflows.toml`, generated workflow indexes, and `docs/assets/workflow/` mirrors aligned whenever reusable workflows or repo-local skills are added.
-25. Keep repo-local skills concise: workflow docs own sequencing, while `skill.toml` owns reusable execution discipline and references.
-26. Workflow and skill machine-readable definitions must use TOML (`*.toml`, `skill.toml`, and `agents/openai.toml`); Markdown remains explanatory only.
+24. When standard-stream symbolic definitions change, keep `docs/design/syntax/RESOURCE_IDENTIFIERS.md`, `docs/design/syntax/CONTINUATION_TRANSFER.md`, EBNF, symbol reference, and the language design aligned on canonical, expanded, compatibility, and parser-implementation status.
+25. Keep root `workflows/`, `workflows/skills/`, `workflows/workflows.toml`, generated workflow indexes, and `docs/assets/workflow/` mirrors aligned whenever reusable workflows or repo-local skills are added.
+26. Keep repo-local skills concise: workflow docs own sequencing, while `skill.toml` owns reusable execution discipline and references.
+27. Workflow and skill machine-readable definitions must use TOML (`*.toml`, `skill.toml`, and `agents/openai.toml`); Markdown remains explanatory only.
 
 ## Change Classes
 

@@ -89,38 +89,42 @@ enum StyioDynTag : std::int64_t
 
 bool
 ir_yields_list_handle(StyioIR* value) {
-  if (dynamic_cast<SGListLiteral*>(value)
-      || dynamic_cast<SGListReadStdin*>(value)
-      || dynamic_cast<SGListClone*>(value)
-      || dynamic_cast<SGDictKeys*>(value)
-      || dynamic_cast<SGDictValues*>(value)) {
+  if (dynamic_cast<SCListLiteral*>(value)
+      || dynamic_cast<SIOListReadStdin*>(value)
+      || dynamic_cast<SCListClone*>(value)
+      || dynamic_cast<SCDictKeys*>(value)
+      || dynamic_cast<SCDictValues*>(value)) {
     return true;
   }
   if (auto* load = dynamic_cast<SGDynLoad*>(value)) {
     return load->kind == SGDynLoadKind::ListHandle;
   }
-  if (auto* get = dynamic_cast<SGListGet*>(value)) {
+  if (auto* get = dynamic_cast<SCListGet*>(value)) {
     return styio_value_family_from_type_name(get->elem_type) == StyioValueFamily::ListHandle;
   }
-  if (auto* get = dynamic_cast<SGDictGet*>(value)) {
+  if (auto* get = dynamic_cast<SCDictGet*>(value)) {
     return styio_value_family_from_type_name(get->value_type) == StyioValueFamily::ListHandle;
+  }
+  if (auto* call = dynamic_cast<SGCall*>(value)) {
+    return call->func_name != nullptr
+      && call->func_name->as_str() == "__styio_string_lines";
   }
   return false;
 }
 
 bool
 ir_yields_dict_handle(StyioIR* value) {
-  if (dynamic_cast<SGDictLiteral*>(value)
-      || dynamic_cast<SGDictClone*>(value)) {
+  if (dynamic_cast<SCDictLiteral*>(value)
+      || dynamic_cast<SCDictClone*>(value)) {
     return true;
   }
   if (auto* load = dynamic_cast<SGDynLoad*>(value)) {
     return load->kind == SGDynLoadKind::DictHandle;
   }
-  if (auto* get = dynamic_cast<SGListGet*>(value)) {
+  if (auto* get = dynamic_cast<SCListGet*>(value)) {
     return styio_value_family_from_type_name(get->elem_type) == StyioValueFamily::DictHandle;
   }
-  if (auto* get = dynamic_cast<SGDictGet*>(value)) {
+  if (auto* get = dynamic_cast<SCDictGet*>(value)) {
     return styio_value_family_from_type_name(get->value_type) == StyioValueFamily::DictHandle;
   }
   return false;
@@ -1423,6 +1427,26 @@ StyioToLLVM::toLLVMIR(SGCall* node) {
     return theBuilder->getInt64(0);
   }
 
+  if (fname == "__styio_string_lines") {
+    if (node->func_args.size() != 1) {
+      throw StyioTypeError(
+        "runtime string.lines expects 1 argument, got "
+        + std::to_string(node->func_args.size()));
+    }
+    llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
+    llvm::FunctionCallee lines_fn = theModule->getOrInsertFunction(
+      "styio_string_lines",
+      llvm::FunctionType::get(theBuilder->getInt64Ty(), {char_ptr}, false));
+    llvm::Value* raw = node->func_args[0]->toLLVMIR(this);
+    if (!raw->getType()->isPointerTy()) {
+      throw StyioTypeError("runtime string.lines requires a string argument");
+    }
+    llvm::Value* out = theBuilder->CreateCall(lines_fn, {raw});
+    free_owned_cstr_temp_if_tracked(raw);
+    track_owned_resource_temp(out, TempResourceKind::List);
+    return out;
+  }
+
   bool is_builtin_list_push = false;
   bool is_builtin_list_insert = false;
   std::string builtin_suffix;
@@ -1705,7 +1729,7 @@ StyioToLLVM::toLLVMIR(SGLoop* node) {
 
 llvm::Value*
 StyioToLLVM::toLLVMIR(SGForEach* node) {
-  auto* lit = dynamic_cast<SGListLiteral*>(node->iterable);
+  auto* lit = dynamic_cast<SCListLiteral*>(node->iterable);
   llvm::Function* F = theBuilder->GetInsertBlock()->getParent();
   llvm::IntegerType* i64t = theBuilder->getInt64Ty();
   llvm::Value* zero = llvm::ConstantInt::get(i64t, 0);
@@ -2044,7 +2068,7 @@ StyioToLLVM::toLLVMIR(SGIf* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListLiteral* node) {
+StyioToLLVM::toLLVMIR(SCListLiteral* node) {
   StyioValueFamily elem_family = styio_value_family_from_type_name(node->elem_type);
   const char* new_name = "styio_list_new_i64";
   const char* push_name = "styio_list_push_i64";
@@ -2125,7 +2149,7 @@ StyioToLLVM::toLLVMIR(SGListLiteral* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictLiteral* node) {
+StyioToLLVM::toLLVMIR(SCDictLiteral* node) {
   StyioValueFamily value_family = styio_value_family_from_type_name(node->value_type);
   const char* new_name = "styio_dict_new_i64";
   const char* set_name = "styio_dict_set_i64";
@@ -2459,7 +2483,7 @@ path_key_from_path_ir(StyioIR* path_expr) {
 }  // namespace
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGHandleAcquire* node) {
+StyioToLLVM::toLLVMIR(SIOHandleAcquire* node) {
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
   llvm::FunctionCallee open_fn = theModule->getOrInsertFunction(
     node->is_auto ? "styio_file_open_auto" : "styio_file_open",
@@ -2497,7 +2521,7 @@ StyioToLLVM::toLLVMIR(SGHandleAcquire* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGFileLineIter* node) {
+StyioToLLVM::toLLVMIR(SIOFileLineIter* node) {
   llvm::Function* F = theBuilder->GetInsertBlock()->getParent();
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
   llvm::FunctionCallee open_fn = theModule->getOrInsertFunction(
@@ -2641,7 +2665,7 @@ StyioToLLVM::toLLVMIR(SGSnapshotShadowLoad* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGInstantPull* node) {
+StyioToLLVM::toLLVMIR(SIOInstantPull* node) {
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
   llvm::FunctionCallee read_fn = theModule->getOrInsertFunction(
     "styio_read_file_i64line",
@@ -2651,7 +2675,7 @@ StyioToLLVM::toLLVMIR(SGInstantPull* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListReadStdin* node) {
+StyioToLLVM::toLLVMIR(SIOListReadStdin* node) {
   const char* read_name = node->elem_type == "string"
     ? "styio_list_cstr_read_stdin"
     : "styio_list_i64_read_stdin";
@@ -2664,7 +2688,7 @@ StyioToLLVM::toLLVMIR(SGListReadStdin* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListClone* node) {
+StyioToLLVM::toLLVMIR(SCListClone* node) {
   llvm::FunctionCallee clone_fn = theModule->getOrInsertFunction(
     "styio_list_clone",
     llvm::FunctionType::get(theBuilder->getInt64Ty(), {theBuilder->getInt64Ty()}, false));
@@ -2678,7 +2702,7 @@ StyioToLLVM::toLLVMIR(SGListClone* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListLen* node) {
+StyioToLLVM::toLLVMIR(SCListLen* node) {
   llvm::FunctionCallee len_fn = theModule->getOrInsertFunction(
     "styio_list_len",
     llvm::FunctionType::get(theBuilder->getInt64Ty(), {theBuilder->getInt64Ty()}, false));
@@ -2692,7 +2716,7 @@ StyioToLLVM::toLLVMIR(SGListLen* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListGet* node) {
+StyioToLLVM::toLLVMIR(SCListGet* node) {
   StyioValueFamily elem_family = styio_value_family_from_type_name(node->elem_type);
   const bool string_elem = elem_family == StyioValueFamily::String;
   const bool float_elem = elem_family == StyioValueFamily::Float;
@@ -2744,7 +2768,7 @@ StyioToLLVM::toLLVMIR(SGListGet* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListSet* node) {
+StyioToLLVM::toLLVMIR(SCListSet* node) {
   StyioValueFamily value_family = styio_value_family_from_type_name(node->elem_type);
   llvm::Type* set_value_type = theBuilder->getInt64Ty();
   const char* set_name = "styio_list_set";
@@ -2823,7 +2847,7 @@ StyioToLLVM::toLLVMIR(SGListSet* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGListToString* node) {
+StyioToLLVM::toLLVMIR(SCListToString* node) {
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
   llvm::FunctionCallee str_fn = theModule->getOrInsertFunction(
     "styio_list_to_cstr",
@@ -2839,7 +2863,7 @@ StyioToLLVM::toLLVMIR(SGListToString* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictClone* node) {
+StyioToLLVM::toLLVMIR(SCDictClone* node) {
   llvm::FunctionCallee clone_fn = theModule->getOrInsertFunction(
     "styio_dict_clone",
     llvm::FunctionType::get(theBuilder->getInt64Ty(), {theBuilder->getInt64Ty()}, false));
@@ -2853,7 +2877,7 @@ StyioToLLVM::toLLVMIR(SGDictClone* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictLen* node) {
+StyioToLLVM::toLLVMIR(SCDictLen* node) {
   llvm::FunctionCallee len_fn = theModule->getOrInsertFunction(
     "styio_dict_len",
     llvm::FunctionType::get(theBuilder->getInt64Ty(), {theBuilder->getInt64Ty()}, false));
@@ -2867,7 +2891,7 @@ StyioToLLVM::toLLVMIR(SGDictLen* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictGet* node) {
+StyioToLLVM::toLLVMIR(SCDictGet* node) {
   StyioValueFamily value_family = styio_value_family_from_type_name(node->value_type);
   const bool string_value = value_family == StyioValueFamily::String;
   const bool float_value = value_family == StyioValueFamily::Float;
@@ -2917,7 +2941,7 @@ StyioToLLVM::toLLVMIR(SGDictGet* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictSet* node) {
+StyioToLLVM::toLLVMIR(SCDictSet* node) {
   StyioValueFamily value_family = styio_value_family_from_type_name(node->value_type);
   llvm::Type* set_value_type = theBuilder->getInt64Ty();
   const char* set_name = "styio_dict_set_i64";
@@ -2992,7 +3016,7 @@ StyioToLLVM::toLLVMIR(SGDictSet* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictKeys* node) {
+StyioToLLVM::toLLVMIR(SCDictKeys* node) {
   llvm::FunctionCallee keys_fn = theModule->getOrInsertFunction(
     "styio_dict_keys",
     llvm::FunctionType::get(theBuilder->getInt64Ty(), {theBuilder->getInt64Ty()}, false));
@@ -3007,7 +3031,7 @@ StyioToLLVM::toLLVMIR(SGDictKeys* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictValues* node) {
+StyioToLLVM::toLLVMIR(SCDictValues* node) {
   StyioValueFamily value_family = styio_value_family_from_type_name(node->value_type);
   llvm::FunctionCallee values_fn = theModule->getOrInsertFunction(
     value_family == StyioValueFamily::String
@@ -3033,7 +3057,7 @@ StyioToLLVM::toLLVMIR(SGDictValues* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGDictToString* node) {
+StyioToLLVM::toLLVMIR(SCDictToString* node) {
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
   llvm::FunctionCallee str_fn = theModule->getOrInsertFunction(
     "styio_dict_to_cstr",
@@ -3049,7 +3073,7 @@ StyioToLLVM::toLLVMIR(SGDictToString* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGStreamZip* node) {
+StyioToLLVM::toLLVMIR(SIOStreamZip* node) {
   llvm::Function* F = theBuilder->GetInsertBlock()->getParent();
   llvm::IntegerType* i64t = theBuilder->getInt64Ty();
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
@@ -3067,8 +3091,8 @@ StyioToLLVM::toLLVMIR(SGStreamZip* node) {
     "styio_file_close",
     llvm::FunctionType::get(theBuilder->getVoidTy(), {i64t}, false));
 
-  auto* lit_a = dynamic_cast<SGListLiteral*>(node->iterable_a);
-  auto* lit_b = dynamic_cast<SGListLiteral*>(node->iterable_b);
+  auto* lit_a = dynamic_cast<SCListLiteral*>(node->iterable_a);
+  auto* lit_b = dynamic_cast<SCListLiteral*>(node->iterable_b);
 
   llvm::AllocaInst* ledger_alloc = nullptr;
   llvm::AllocaInst* snap_alloc = nullptr;
@@ -3573,7 +3597,7 @@ StyioToLLVM::toLLVMIR(SGStreamZip* node) {
 }
 
 llvm::Value*
-StyioToLLVM::toLLVMIR(SGResourceWriteToFile* node) {
+StyioToLLVM::toLLVMIR(SIOResourceWriteToFile* node) {
   (void)node->is_auto_path;
   llvm::Type* char_ptr = llvm::PointerType::get(*theContext, 0);
   llvm::FunctionCallee openw = theModule->getOrInsertFunction(

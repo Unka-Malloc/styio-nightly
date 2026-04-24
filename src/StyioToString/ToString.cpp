@@ -1370,14 +1370,14 @@ StyioRepr::toString(SGIf* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGListLiteral* node, int indent) {
+StyioRepr::toString(SCListLiteral* node, int indent) {
   (void)node;
   (void)indent;
   return "styio.ir.listlit { }";
 }
 
 std::string
-StyioRepr::toString(SGDictLiteral* node, int indent) {
+StyioRepr::toString(SCDictLiteral* node, int indent) {
   (void)indent;
   return std::string("styio.ir.dict_literal { entries=") + std::to_string(node->entries.size())
     + ", value=" + node->value_type + " }";
@@ -1475,14 +1475,14 @@ StyioRepr::toString(SGEqProbe* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGHandleAcquire* node, int indent) {
+StyioRepr::toString(SIOHandleAcquire* node, int indent) {
   std::string p = node->path_expr ? node->path_expr->toString(this, indent) : std::string("null");
   return std::string("styio.ir.handle_acquire { ") + node->var_name + ", auto="
          + (node->is_auto ? "1" : "0") + ", path=" + p + " }";
 }
 
 std::string
-StyioRepr::toString(SGFileLineIter* node, int indent) {
+StyioRepr::toString(SIOFileLineIter* node, int indent) {
   std::string s = "styio.ir.file_line_iter { ";
   if (node->from_path) {
     s += "path=" + (node->path_expr ? node->path_expr->toString(this, indent) : std::string("null"));
@@ -1497,7 +1497,7 @@ StyioRepr::toString(SGFileLineIter* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGStreamZip* node, int indent) {
+StyioRepr::toString(SIOStreamZip* node, int indent) {
   (void)indent;
   return std::string("styio.ir.stream_zip { ") + node->var_a + " & " + node->var_b + " }";
 }
@@ -1516,31 +1516,31 @@ StyioRepr::toString(SGSnapshotShadowLoad* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGInstantPull* node, int indent) {
+StyioRepr::toString(SIOInstantPull* node, int indent) {
   std::string p = node->path_expr ? node->path_expr->toString(this, indent) : std::string("null");
   return std::string("styio.ir.instant_pull { path=") + p + " }";
 }
 
 std::string
-StyioRepr::toString(SGListReadStdin* node, int indent) {
+StyioRepr::toString(SIOListReadStdin* node, int indent) {
   (void)indent;
   return std::string("styio.ir.list_read_stdin { elem=") + node->elem_type + " }";
 }
 
 std::string
-StyioRepr::toString(SGListClone* node, int indent) {
+StyioRepr::toString(SCListClone* node, int indent) {
   return std::string("styio.ir.list_clone { src=")
     + (node->source ? node->source->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGListLen* node, int indent) {
+StyioRepr::toString(SCListLen* node, int indent) {
   return std::string("styio.ir.list_len { list=")
     + (node->list ? node->list->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGListGet* node, int indent) {
+StyioRepr::toString(SCListGet* node, int indent) {
   return std::string("styio.ir.list_get { list=")
     + (node->list ? node->list->toString(this, indent) : std::string("null"))
     + ", index=" + (node->index ? node->index->toString(this, indent) : std::string("null"))
@@ -1548,7 +1548,7 @@ StyioRepr::toString(SGListGet* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGListSet* node, int indent) {
+StyioRepr::toString(SCListSet* node, int indent) {
   return std::string("styio.ir.list_set { list=")
     + (node->list ? node->list->toString(this, indent) : std::string("null"))
     + ", index=" + (node->index ? node->index->toString(this, indent) : std::string("null"))
@@ -1557,25 +1557,25 @@ StyioRepr::toString(SGListSet* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGListToString* node, int indent) {
+StyioRepr::toString(SCListToString* node, int indent) {
   return std::string("styio.ir.list_to_string { list=")
     + (node->list ? node->list->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGDictClone* node, int indent) {
+StyioRepr::toString(SCDictClone* node, int indent) {
   return std::string("styio.ir.dict_clone { src=")
     + (node->source ? node->source->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGDictLen* node, int indent) {
+StyioRepr::toString(SCDictLen* node, int indent) {
   return std::string("styio.ir.dict_len { dict=")
     + (node->dict ? node->dict->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGDictGet* node, int indent) {
+StyioRepr::toString(SCDictGet* node, int indent) {
   return std::string("styio.ir.dict_get { dict=")
     + (node->dict ? node->dict->toString(this, indent) : std::string("null"))
     + ", key=" + (node->key ? node->key->toString(this, indent) : std::string("null"))
@@ -1583,7 +1583,7 @@ StyioRepr::toString(SGDictGet* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGDictSet* node, int indent) {
+StyioRepr::toString(SCDictSet* node, int indent) {
   return std::string("styio.ir.dict_set { dict=")
     + (node->dict ? node->dict->toString(this, indent) : std::string("null"))
     + ", key=" + (node->key ? node->key->toString(this, indent) : std::string("null"))
@@ -1592,26 +1592,26 @@ StyioRepr::toString(SGDictSet* node, int indent) {
 }
 
 std::string
-StyioRepr::toString(SGDictKeys* node, int indent) {
+StyioRepr::toString(SCDictKeys* node, int indent) {
   return std::string("styio.ir.dict_keys { dict=")
     + (node->dict ? node->dict->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGDictValues* node, int indent) {
+StyioRepr::toString(SCDictValues* node, int indent) {
   return std::string("styio.ir.dict_values { dict=")
     + (node->dict ? node->dict->toString(this, indent) : std::string("null"))
     + ", value=" + node->value_type + " }";
 }
 
 std::string
-StyioRepr::toString(SGDictToString* node, int indent) {
+StyioRepr::toString(SCDictToString* node, int indent) {
   return std::string("styio.ir.dict_to_string { dict=")
     + (node->dict ? node->dict->toString(this, indent) : std::string("null")) + " }";
 }
 
 std::string
-StyioRepr::toString(SGResourceWriteToFile* node, int indent) {
+StyioRepr::toString(SIOResourceWriteToFile* node, int indent) {
   std::string d = node->data_expr ? node->data_expr->toString(this, indent) : std::string("null");
   std::string p = node->path_expr ? node->path_expr->toString(this, indent) : std::string("null");
   return std::string("styio.ir.resource_write { data=") + d + ", path=" + p

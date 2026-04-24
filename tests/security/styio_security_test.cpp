@@ -695,6 +695,26 @@ TEST(StyioSecurityLexer, TokenizesInlineReturnAndPipeSemicolon) {
   free_tokens(tokens);
 }
 
+TEST(StyioSecurityLexer, TokenizesTerminalHandleShorthands) {
+  auto bracket_tokens = StyioTokenizer::tokenize("<|[>_]");
+  ASSERT_GE(bracket_tokens.size(), 5u);
+  EXPECT_EQ(bracket_tokens[0]->type, StyioTokenType::YIELD_PIPE);
+  EXPECT_EQ(bracket_tokens[1]->type, StyioTokenType::TOK_LBOXBRAC);
+  EXPECT_EQ(bracket_tokens[2]->type, StyioTokenType::PRINT);
+  EXPECT_EQ(bracket_tokens[3]->type, StyioTokenType::TOK_RBOXBRAC);
+  EXPECT_EQ(bracket_tokens.back()->type, StyioTokenType::TOK_EOF);
+  free_tokens(bracket_tokens);
+
+  auto paren_tokens = StyioTokenizer::tokenize("<|(>_)");
+  ASSERT_GE(paren_tokens.size(), 5u);
+  EXPECT_EQ(paren_tokens[0]->type, StyioTokenType::YIELD_PIPE);
+  EXPECT_EQ(paren_tokens[1]->type, StyioTokenType::TOK_LPAREN);
+  EXPECT_EQ(paren_tokens[2]->type, StyioTokenType::PRINT);
+  EXPECT_EQ(paren_tokens[3]->type, StyioTokenType::TOK_RPAREN);
+  EXPECT_EQ(paren_tokens.back()->type, StyioTokenType::TOK_EOF);
+  free_tokens(paren_tokens);
+}
+
 TEST(StyioSecurityParserLookahead, SkipTriviaFindsNextToken) {
   auto tokens = StyioTokenizer::tokenize("   // cmt\nfoo");
   ASSERT_FALSE(tokens.empty());
@@ -865,6 +885,41 @@ TEST(StyioSecurityNightlyParserStmt, ParsesInlineReturnAndStatementSeparators) {
 
   EXPECT_NE(repr.find("styio.ast.return"), std::string::npos);
   EXPECT_NE(repr.find("discount"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlyParserStmt, ParsesTerminalHandleReturnShorthands) {
+  const std::vector<std::string> samples = {
+    "# stdin_a := () => { <|[>_] }\n",
+    "# stdin_b := () => { <|(>_) }\n",
+    "# stdin_c := () => { <| <- [>_] }\n",
+    "# stdin_d := () => { <| <- (>_) }\n",
+  };
+
+  for (const auto& src : samples) {
+    const std::string repr = parse_program_to_repr_latest(src, true);
+    EXPECT_NE(repr.find("styio.ast.return"), std::string::npos) << src;
+    EXPECT_NE(repr.find("@stdin"), std::string::npos) << src;
+  }
+}
+
+TEST(StyioSecurityNightlyParserStmt, ParsesStandardStreamSymbolicDefinitions) {
+  const std::string src =
+    "@stdout := { xs >> [>_] }\n"
+    "@stdout := { x -> [>_] }\n"
+    "@stdout := { xs >> (>_) }\n"
+    "@stdout := { x -> (>_) }\n"
+    "@stderr := { !(xs) >> [>_] }\n"
+    "@stderr := { !(x) -> [>_] }\n"
+    "@stderr := { !(xs) >> (>_) }\n"
+    "@stderr := { !(x) -> (>_) }\n"
+    "@stdin := { <|[>_] }\n"
+    "@stdin := { <|(>_) }\n"
+    "@stdin := { <| <- [>_] }\n"
+    "@stdin := { <| <- (>_) }\n";
+
+  EXPECT_NO_THROW((void)parse_program_to_repr_latest(src, true));
+  EXPECT_NO_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
 }
 
 TEST(StyioSecurityNightlyParserStmt, MatchesLegacyOnFlexBindSubsetSamples) {
@@ -1128,6 +1183,75 @@ TEST(StyioSecurityNightlySemantics, AllowsBoundStdinAliasIteration) {
   const std::string llvm_ir =
     compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
   EXPECT_NE(llvm_ir.find("styio_stdin_read_line"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlySemantics, SymbolicStdinDefinitionCanPrecedeIteration) {
+  const std::string src =
+    "@stdin := { <|[>_] }\n"
+    "@stdin >> #(line) => {\n"
+    "  line -> [>_]\n"
+    "}\n";
+  EXPECT_NO_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
+  const std::string llvm_ir =
+    compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(llvm_ir.find("styio_stdin_read_line"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("styio_stdout_write"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlySemantics, ImmediatePullUsesArrowLeftSpelling) {
+  const std::string src =
+    "value = (<- @stdin)\n"
+    "value -> [>_]\n";
+  EXPECT_NO_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
+  const std::string llvm_ir =
+    compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(llvm_ir.find("styio_stdin_read_line"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlySemantics, StringLinesCanFeedTerminalHandleIteratorWrite) {
+  const std::string src =
+    "text = \"alpha\nbeta\"\n"
+    "text.lines() >> [>_]\n";
+  EXPECT_NO_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
+  const std::string llvm_ir =
+    compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(llvm_ir.find("styio_string_lines"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("styio_list_to_cstr"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("styio_stdout_write"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlySemantics, TerminalHandleIteratorWriteRejectsScalarString) {
+  const std::string src =
+    "text = \"alpha\"\n"
+    "text >> [>_]\n";
+  EXPECT_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly),
+    StyioTypeError);
+}
+
+TEST(StyioSecurityNightlySemantics, StringLinesCanFeedStdoutResourceIteratorWrite) {
+  const std::string src =
+    "text = \"alpha\nbeta\"\n"
+    "text.lines() >> @stdout\n";
+  EXPECT_NO_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
+  const std::string llvm_ir =
+    compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(llvm_ir.find("styio_string_lines"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("styio_list_to_cstr"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("styio_stdout_write"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlySemantics, StdoutResourceIteratorWriteRejectsScalarString) {
+  const std::string src =
+    "text = \"alpha\"\n"
+    "text >> @stdout\n";
+  EXPECT_THROW(
+    parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly),
+    StyioTypeError);
 }
 
 TEST(StyioSecurityNightlySemantics, AllowsStandaloneCollectBindFromStdin) {
@@ -1467,10 +1591,10 @@ TEST(StyioSecurityNightlyParserShadow, MatchesLegacyOnArbitrageWaveDispatchRoute
 
 TEST(StyioSecurityNightlyParserStmt, MatchesLegacyOnStdStreamWriteShorthandSamples) {
   const std::vector<std::string> samples = {
-    "\"hello\" >> @stdout\n",
-    "\"error\" >> @stderr\n",
-    "@stdin >> #(line) => {\n    line >> @stdout\n}\n",
-    "@stdin >> #(line) => {\n    \"processing: \" + line >> @stderr\n}\n",
+    "items = [\"hello\"]\nitems >> @stdout\n",
+    "items = [\"error\"]\nitems >> @stderr\n",
+    "@stdin >> #(line) => {\n    items = [line]\n    items >> @stdout\n}\n",
+    "@stdin >> #(line) => {\n    items = [\"processing: \" + line]\n    items >> @stderr\n}\n",
   };
 
   for (const auto& src : samples) {
@@ -1945,7 +2069,7 @@ TEST(StyioSecurityAstOwnership, SizeOfLowersListLength) {
   EXPECT_EQ(expr->getDataType().name, "i64");
 
   StyioIR* ir = expr->toStyioIR(&analyzer);
-  EXPECT_NE(dynamic_cast<SGListLen*>(ir), nullptr);
+  EXPECT_NE(dynamic_cast<SCListLen*>(ir), nullptr);
 
   delete ir;
   delete expr;

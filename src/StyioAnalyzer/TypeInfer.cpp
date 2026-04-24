@@ -132,6 +132,11 @@ is_predefined_list_operation_name(const std::string& name) {
   return name == "push" || name == "insert" || name == "pop";
 }
 
+bool
+is_predefined_string_operation_name(const std::string& name) {
+  return name == "lines";
+}
+
 StyioDataType
 infer_predefined_list_operation_type(StyioAnalyzer* an, FuncCallAST* call) {
   if (call == nullptr || call->func_callee == nullptr) {
@@ -145,6 +150,21 @@ infer_predefined_list_operation_type(StyioAnalyzer* an, FuncCallAST* call) {
     return StyioDataType{StyioDataTypeOption::Undefined, "undefined", 0};
   }
   return kI64Type;
+}
+
+StyioDataType
+infer_predefined_string_operation_type(StyioAnalyzer* an, FuncCallAST* call) {
+  if (call == nullptr || call->func_callee == nullptr) {
+    return StyioDataType{StyioDataTypeOption::Undefined, "undefined", 0};
+  }
+  if (!is_predefined_string_operation_name(call->getNameAsStr())) {
+    return StyioDataType{StyioDataTypeOption::Undefined, "undefined", 0};
+  }
+  StyioDataType callee_type = infer_expr_type(an, call->func_callee);
+  if (callee_type.option != StyioDataTypeOption::String) {
+    return StyioDataType{StyioDataTypeOption::Undefined, "undefined", 0};
+  }
+  return styio_make_list_type("string");
 }
 
 bool
@@ -322,6 +342,10 @@ infer_expr_type(StyioAnalyzer* an, StyioAST* expr) {
       if (!builtin_type.isUndefined()) {
         return builtin_type;
       }
+      builtin_type = infer_predefined_string_operation_type(an, call);
+      if (!builtin_type.isUndefined()) {
+        return builtin_type;
+      }
       auto it = an->func_defs.find(call->getNameAsStr());
       if (it != an->func_defs.end()) {
         return func_ret_type_of_def(an, it->second);
@@ -354,6 +378,23 @@ bool
 type_is_intish(StyioDataType const& t) {
   return t.option == StyioDataTypeOption::Integer
     || t.option == StyioDataTypeOption::Float;
+}
+
+bool
+type_is_text_serializable_iterable(StyioDataType const& t) {
+  if (styio_is_list_type(t)) {
+    return styio_type_supports_runtime_list_elem(
+      styio_data_type_from_name(styio_type_item_type_name(t)));
+  }
+  if (styio_is_dict_type(t)) {
+    return styio_dict_key_type_name(t) == "string"
+      && styio_type_supports_runtime_dict_value(
+        styio_data_type_from_name(styio_dict_value_type_name(t)));
+  }
+  if (t.handle_family == StyioHandleFamily::Range) {
+    return styio_value_family_is_runtime_scalar(styio_type_item_value_family(t));
+  }
+  return false;
 }
 
 std::optional<bool>
@@ -585,6 +626,10 @@ StyioAnalyzer::typeInfer(FlexBindAST* ast) {
       case StyioNodeType::Condition:
       case StyioNodeType::Compare: {
         ast->getVar()->setDataType(StyioDataType{StyioDataTypeOption::Bool, "bool", 1});
+      } break;
+
+      case StyioNodeType::String: {
+        ast->getVar()->setDataType(kStringType);
       } break;
 
       case StyioNodeType::Tuple: {
@@ -1070,6 +1115,16 @@ StyioAnalyzer::typeInfer(ResourceWriteAST* ast) {
   if (!styio_type_is_writable(resource_type)) {
     throw StyioTypeError("write target must be a writable resource");
   }
+  if (auto* stream = dynamic_cast<StdStreamAST*>(ast->getResource())) {
+    if (stream->getStreamKind() != StdStreamKind::Stdin) {
+      StyioDataType data_type = infer_expr_type(this, ast->getData());
+      if (!type_is_text_serializable_iterable(data_type)) {
+        throw StyioTypeError(
+          "terminal/standard-stream `>>` requires an iterable text-serializable value; "
+          "use `-> @stdout` or `-> [>_]` for scalar text");
+      }
+    }
+  }
 }
 
 void
@@ -1423,6 +1478,20 @@ StyioAnalyzer::typeInfer(FuncCallAST* ast) {
 
     if (!ast->getArgList().empty()) {
       throw StyioTypeError("list.pop() does not take arguments");
+    }
+    return;
+  }
+
+  if (ast->func_callee != nullptr && is_predefined_string_operation_name(ast->getNameAsStr())) {
+    for (auto* arg : ast->getArgList()) {
+      arg->typeInfer(this);
+    }
+    StyioDataType callee_type = infer_expr_type(this, ast->func_callee);
+    if (callee_type.option != StyioDataTypeOption::String) {
+      throw StyioTypeError("string.lines() requires a string receiver");
+    }
+    if (!ast->getArgList().empty()) {
+      throw StyioTypeError("string.lines() does not take arguments");
     }
     return;
   }

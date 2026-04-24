@@ -2546,9 +2546,11 @@ public:
 class StdStreamAST : public StyioASTTraits<StdStreamAST>
 {
   StdStreamKind kind_;
+  bool terminal_handle_ = false;
 
-  explicit StdStreamAST(StdStreamKind k) :
-      kind_(k) {
+  explicit StdStreamAST(StdStreamKind k, bool terminal_handle = false) :
+      kind_(k),
+      terminal_handle_(terminal_handle) {
   }
 
 public:
@@ -2556,8 +2558,16 @@ public:
     return new StdStreamAST(k);
   }
 
+  static StdStreamAST* CreateTerminalHandle(StdStreamKind k) {
+    return new StdStreamAST(k, true);
+  }
+
   StdStreamKind getStreamKind() const {
     return kind_;
+  }
+
+  bool isTerminalHandle() const {
+    return terminal_handle_;
   }
 
   const StyioNodeType getNodeType() const {

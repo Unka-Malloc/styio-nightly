@@ -2,7 +2,7 @@
 
 **Purpose:** Define the compact syntax and one-shot lifecycle for continuation transfer.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 ```styio
 f <| a        := f(a)
@@ -26,6 +26,22 @@ k <| a       := resume k with a
 | `|<| ... |;` | inline return for one-line blocks |
 | `|>` | reserved |
 | `|<-` | reserved |
+
+Resource definition shorthand:
+
+```styio
+@stdin := { <|[>_] }
+@stdin := { <|(>_) }
+@stdin := { <| <- [>_] }
+@stdin := { <| <- (>_) }  // compatibility terminal-device spelling
+```
+
+Inside symbolic standard-stream definitions, `<|` marks the value exported from the definition
+block. The compact stdin form `<|[>_]` is shorthand for the expanded pull-return form
+`<| <- [>_]`. The call-like form `<|(>_)` is also accepted at the design level: it reads as
+`<|` returning/exporting the terminal device argument. The bracketed terminal handle `[>_]`
+replaces the earlier `| >_ |` spelling to avoid a `|>` visual/tokenization ambiguity; `(>_)`
+remains a compatibility spelling.
 
 Lifecycle:
 

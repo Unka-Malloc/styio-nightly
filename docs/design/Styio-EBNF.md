@@ -2,7 +2,7 @@
 
 **Purpose:** 词法与语法的 **EBNF 权威定义**；资源拓扑相关附录与叙述以 [`Styio-Resource-Topology.md`](./Styio-Resource-Topology.md) 为准，语义细节以 [`Styio-Language-Design.md`](./Styio-Language-Design.md) 为准。
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 **Version:** 1.0-draft  
 **Date:** 2026-03-28  
@@ -284,10 +284,12 @@ zip_pipeline       = stream_source '>>' closure_sig
 snapshot_decl      = '@' '[' identifier ']' '<<' resource ;
 ```
 
-### 7.3 Instant Pull
+### 7.3 Immediate Pull
 
 ```ebnf
-instant_pull       = '(' '<<' resource ')' ;
+instant_pull       = '(' '<-' resource ')' ;
+
+legacy_instant_pull = '(' '<<' resource ')' ;  (* compatibility only; do not use in new design text *)
 ```
 
 ---
@@ -366,6 +368,7 @@ primary_expr       = identifier
                    | resource
                    | collection
                    | instant_pull
+                   | legacy_instant_pull
                    | '(' expression ')'
                    | '?' '(' expression ')'        (* optional: same as parenthesized expr; convention for wave <~ condition *)
                    | block ;
@@ -398,9 +401,21 @@ binding definitions such as `@stdout := ...`.
 
 Usage patterns (reuse existing productions):
 - `expr '->' '@stdout'` / `expr '->' '@stderr'` — canonical standard-stream write via `resource_redirect`
-- `expr '>>' '@stdout'` / `expr '>>' '@stderr'` — accepted standard-stream resource-write shorthand via `resource_write`
+- `iterable_expr '>>' '@stdout'` / `iterable_expr '>>' '@stderr'` — standard-stream iterable write via `resource_write`
+- `iterable_expr '>>' terminal_handle` — terminal-handle resource-write shorthand; semantic checks require an iterable, text-serializable value
+- `string_expr '.lines()' '>>' terminal_handle` — explicit newline split before terminal-handle iterable write
 - `'@stdin' '>>' '#' '(' param_list ')' '=>' block` — iterate via `iterator`
-- `'(' '<<' '@stdin' ')'` — instant pull via `instant_pull`
+- `'@stdin' ':=' '{' '<|' terminal_handle '}'` — symbolic stdin definition shorthand (`<|[>_]` or `<|(>_)`)
+- `'@stdin' ':=' '{' '<|' '<-' terminal_handle '}'` — symbolic stdin definition expanded form
+- `'(' '<-' '@stdin' ')'` — immediate pull via `instant_pull`
+- `'(' '<<' '@stdin' ')'` — legacy compatibility pull via `legacy_instant_pull`
+
+```ebnf
+terminal_handle    = '[' '>_' ']'
+                   | '(' '>_' ')' ;  (* compatibility terminal-device spelling *)
+
+string_lines       = expression '.' 'lines' '(' ')' ;
+```
 
 Note: `expr '>>' '@stdin'` is syntactically accepted as `resource_write`, then rejected by
 semantic checks because `@stdin` is read-only.

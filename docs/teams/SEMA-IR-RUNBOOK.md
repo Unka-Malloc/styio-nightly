@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of AST lifecycle, semantic analysis, type inference, StyioIR lowering, string representation, and compilation session ownership.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 ## Mission
 
@@ -34,6 +34,8 @@ High-value docs:
 6. Keep semantic lowering fail-closed: unknown user calls, user-call arity mismatches, unsupported AST nodes, and missing type slots must produce typed diagnostics or covered lowering rules, not `SGConstInt(0)` placeholders.
 7. When adding or repairing AST nodes such as `SizeOf`, prove the full lifecycle: owned child expression, writable inferred type slot, typed inference result, and StyioIR lowering shape.
 8. When parser syntax can represent one-shot continuations before lowering exists, emit explicit semantic errors instead of letting internal resume names leak as unknown user functions.
+9. For terminal-handle and standard-stream iterable writes (`>> [>_]`, `>> @stdout`, `>> @stderr`), keep semantic checks stricter than `->`: require an iterable text-serializable type, reject scalar strings, and route explicit `string.lines()` through `list[string]` lowering.
+10. Keep GenIR domain ownership physical as well as nominal: default/general nodes belong in `src/StyioIR/GenIR/SGIR.hpp`, IO/file/std-stream/network/filesystem nodes in `SIOIR.hpp`, and List/Dictionary/future Matrix collection nodes in `SCIR.hpp`. `GenIR.hpp` is a compatibility aggregator, not the primary place for new nodes.
 
 ## Change Classes
 

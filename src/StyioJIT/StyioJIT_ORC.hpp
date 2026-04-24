@@ -82,6 +82,7 @@ public:
     add_symbol("styio_stdin_read_line", &styio_stdin_read_line);
     add_symbol("styio_list_i64_read_stdin", &styio_list_i64_read_stdin);
     add_symbol("styio_list_cstr_read_stdin", &styio_list_cstr_read_stdin);
+    add_symbol("styio_string_lines", &styio_string_lines);
     add_symbol("styio_list_new_bool", &styio_list_new_bool);
     add_symbol("styio_list_new_i64", &styio_list_new_i64);
     add_symbol("styio_list_new_f64", &styio_list_new_f64);

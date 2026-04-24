@@ -196,6 +196,14 @@ expr_lowered_type(StyioAnalyzer* an, StyioAST* expr) {
       }
     }
   }
+  if (auto* call = dynamic_cast<FuncCallAST*>(expr)) {
+    if (call->func_callee != nullptr && call->getNameAsStr() == "lines") {
+      StyioDataType callee_type = expr_lowered_type(an, call->func_callee);
+      if (callee_type.option == StyioDataTypeOption::String) {
+        return styio_make_list_type("string");
+      }
+    }
+  }
   if (auto* access = dynamic_cast<ListOpAST*>(expr)) {
     StyioDataType base_type = expr_lowered_type(an, access->getList());
     if (styio_is_dict_type(base_type)) {
@@ -210,7 +218,9 @@ expr_lowered_type(StyioAnalyzer* an, StyioAST* expr) {
 
 bool
 expr_is_list_like(StyioAnalyzer* an, StyioAST* expr) {
-  if (expr->getNodeType() == StyioNodeType::List || styio_is_list_type(expr_lowered_type(an, expr))) {
+  if (expr->getNodeType() == StyioNodeType::List
+      || expr->getNodeType() == StyioNodeType::Range
+      || styio_is_list_type(expr_lowered_type(an, expr))) {
     return true;
   }
   return false;
@@ -242,6 +252,11 @@ collection_elem_is_string(StyioAnalyzer* an, StyioAST* coll) {
 bool
 is_predefined_list_operation_name(const std::string& name) {
   return name == "push" || name == "insert" || name == "pop";
+}
+
+bool
+is_predefined_string_operation_name(const std::string& name) {
+  return name == "lines";
 }
 
 std::string
@@ -1255,14 +1270,14 @@ StyioAnalyzer::toStyioIR(ParallelAssignAST* ast) {
       base_type = *bound;
     }
     if (styio_is_dict_type(base_type)) {
-      stmts.push_back(SGDictSet::Create(
+      stmts.push_back(SCDictSet::Create(
         idx->getList()->toStyioIR(this),
         idx->getSlot1()->toStyioIR(this),
         rhs_val,
         styio_dict_value_type_name(base_type)));
     }
     else {
-      stmts.push_back(SGListSet::Create(
+      stmts.push_back(SCListSet::Create(
         idx->getList()->toStyioIR(this),
         idx->getSlot1()->toStyioIR(this),
         rhs_val,
@@ -1347,7 +1362,7 @@ StyioAnalyzer::toStyioIR(RangeAST* ast) {
     }
   }
 
-  return SGListLiteral::Create(std::move(el), "i64");
+  return SCListLiteral::Create(std::move(el), "i64");
 }
 
 StyioIR*
@@ -1362,19 +1377,19 @@ StyioAnalyzer::toStyioIR(ListAST* ast) {
     el.push_back(e->toStyioIR(this));
   }
   StyioDataType list_type = expr_lowered_type(this, ast);
-  return SGListLiteral::Create(std::move(el), styio_type_item_type_name(list_type));
+  return SCListLiteral::Create(std::move(el), styio_type_item_type_name(list_type));
 }
 
 StyioIR*
 StyioAnalyzer::toStyioIR(DictAST* ast) {
-  std::vector<SGDictLiteral::Entry> entries;
+  std::vector<SCDictLiteral::Entry> entries;
   for (auto const& entry : ast->getEntries()) {
-    entries.push_back(SGDictLiteral::Entry{
+    entries.push_back(SCDictLiteral::Entry{
       entry.key->toStyioIR(this),
       entry.value->toStyioIR(this)});
   }
   StyioDataType dict_type = expr_lowered_type(this, ast);
-  return SGDictLiteral::Create(
+  return SCDictLiteral::Create(
     std::move(entries),
     styio_dict_value_type_name(dict_type));
 }
@@ -1388,10 +1403,10 @@ StyioAnalyzer::toStyioIR(SizeOfAST* ast) {
   StyioDataType value_type = expr_lowered_type(this, ast->getValue());
   StyioIR* value_ir = ast->getValue()->toStyioIR(this);
   if (styio_is_dict_type(value_type)) {
-    return SGDictLen::Create(value_ir);
+    return SCDictLen::Create(value_ir);
   }
   if (styio_is_list_type(value_type)) {
-    return SGListLen::Create(value_ir);
+    return SCListLen::Create(value_ir);
   }
 
   throw StyioTypeError("size-of expects a list or dict value");
@@ -1403,13 +1418,13 @@ StyioAnalyzer::toStyioIR(ListOpAST* ast) {
   if (styio_is_dict_type(base_type)
       && (ast->getOp() == StyioNodeType::Access_By_Index
           || ast->getOp() == StyioNodeType::Access_By_Name)) {
-    return SGDictGet::Create(
+    return SCDictGet::Create(
       ast->getList()->toStyioIR(this),
       ast->getSlot1()->toStyioIR(this),
       styio_dict_value_type_name(base_type));
   }
   if (ast->getOp() == StyioNodeType::Access_By_Index) {
-    return SGListGet::Create(
+    return SCListGet::Create(
       ast->getList()->toStyioIR(this),
       ast->getSlot1()->toStyioIR(this),
       styio_type_item_type_name(base_type));
@@ -1522,7 +1537,7 @@ StyioAnalyzer::toStyioIR(HandleAcquireAST* ast) {
     }
     return SGFlexBind::Create(
       var,
-      SGListReadStdin::Create(styio_type_item_type_name(collected_type)));
+      SIOListReadStdin::Create(styio_type_item_type_name(collected_type)));
   }
   if (dynamic_cast<TypedStdinListAST*>(ast->getResource())
       || dynamic_cast<NameAST*>(ast->getResource())) {
@@ -1543,10 +1558,10 @@ StyioAnalyzer::toStyioIR(HandleAcquireAST* ast) {
     else {
       auto src_type = bound_type_of(this, ast->getResource());
       if (src_type.has_value() && styio_is_dict_type(*src_type)) {
-        rhs = SGDictClone::Create(ast->getResource()->toStyioIR(this));
+        rhs = SCDictClone::Create(ast->getResource()->toStyioIR(this));
       }
       else {
-        rhs = SGListClone::Create(ast->getResource()->toStyioIR(this));
+        rhs = SCListClone::Create(ast->getResource()->toStyioIR(this));
       }
     }
 
@@ -1564,7 +1579,7 @@ StyioAnalyzer::toStyioIR(HandleAcquireAST* ast) {
   if (!fr) {
     throw StyioTypeError("handle acquire needs @file{...} or @{...}");
   }
-  return SGHandleAcquire::Create(
+  return SIOHandleAcquire::Create(
     ast->getVar()->getNameAsStr(),
     fr->getPath()->toStyioIR(this),
     fr->isAutoDetect());
@@ -1591,14 +1606,14 @@ StyioAnalyzer::toStyioIR(ResourceWriteAST* ast) {
     }
     return SGFlexBind::Create(
       var,
-      SGListReadStdin::Create(styio_type_item_type_name(collected_type)));
+      SIOListReadStdin::Create(styio_type_item_type_name(collected_type)));
   }
   StyioIR* data_ir = ast->getData()->toStyioIR(this);
   if (expr_is_list_like(this, ast->getData())) {
-    data_ir = SGListToString::Create(data_ir);
+    data_ir = SCListToString::Create(data_ir);
   }
   else if (expr_is_dict_like(this, ast->getData())) {
-    data_ir = SGDictToString::Create(data_ir);
+    data_ir = SCDictToString::Create(data_ir);
   }
   /* M9: check for standard stream target. */
   auto* ss = dynamic_cast<StdStreamAST*>(ast->getResource());
@@ -1620,7 +1635,7 @@ StyioAnalyzer::toStyioIR(ResourceWriteAST* ast) {
   bool is_str = dt.option == StyioDataTypeOption::String
     || ast->getData()->getNodeType() == StyioNodeType::String;
   bool prom = !is_str;
-  return SGResourceWriteToFile::Create(
+  return SIOResourceWriteToFile::Create(
     data_ir,
     fr->getPath()->toStyioIR(this),
     fr->isAutoDetect(),
@@ -1632,10 +1647,10 @@ StyioIR*
 StyioAnalyzer::toStyioIR(ResourceRedirectAST* ast) {
   StyioIR* data_ir = ast->getData()->toStyioIR(this);
   if (expr_is_list_like(this, ast->getData())) {
-    data_ir = SGListToString::Create(data_ir);
+    data_ir = SCListToString::Create(data_ir);
   }
   else if (expr_is_dict_like(this, ast->getData())) {
-    data_ir = SGDictToString::Create(data_ir);
+    data_ir = SCDictToString::Create(data_ir);
   }
   /* M9: redirect to standard stream → SIOStdStreamWrite */
   auto* ss = dynamic_cast<StdStreamAST*>(ast->getResource());
@@ -1652,7 +1667,7 @@ StyioAnalyzer::toStyioIR(ResourceRedirectAST* ast) {
   if (!fr) {
     throw StyioTypeError("-> target must be a file or standard stream resource");
   }
-  return SGResourceWriteToFile::Create(
+  return SIOResourceWriteToFile::Create(
     data_ir,
     fr->getPath()->toStyioIR(this),
     fr->isAutoDetect(),
@@ -1754,6 +1769,15 @@ StyioAnalyzer::toStyioIR(FuncCallAST* ast) {
       std::move(args));
   }
 
+  if (ast->func_callee != nullptr && is_predefined_string_operation_name(ast->getNameAsStr())) {
+    if (!ast->getArgList().empty()) {
+      throw StyioTypeError("string.lines() does not take arguments");
+    }
+    return SGCall::Create(
+      SGResId::Create("__styio_string_lines"),
+      {ast->func_callee->toStyioIR(this)});
+  }
+
   if (ast->isCallableApply()) {
     throw StyioTypeError(
       "one-shot continuation resume `<|` requires continuation lowering; "
@@ -1790,17 +1814,17 @@ StyioAnalyzer::toStyioIR(AttrAST* ast) {
   StyioDataType body_type = ast->body->getDataType();
   body_type = expr_lowered_type(this, ast->body);
   if (attr_name->getAsStr() == "keys") {
-    return SGDictKeys::Create(ast->body->toStyioIR(this));
+    return SCDictKeys::Create(ast->body->toStyioIR(this));
   }
   if (attr_name->getAsStr() == "values") {
-    return SGDictValues::Create(
+    return SCDictValues::Create(
       ast->body->toStyioIR(this),
       styio_dict_value_type_name(body_type));
   }
   if (styio_is_dict_type(body_type)) {
-    return SGDictLen::Create(ast->body->toStyioIR(this));
+    return SCDictLen::Create(ast->body->toStyioIR(this));
   }
-  return SGListLen::Create(ast->body->toStyioIR(this));
+  return SCListLen::Create(ast->body->toStyioIR(this));
 }
 
 StyioIR*
@@ -1811,9 +1835,9 @@ StyioAnalyzer::toStyioIR(PrintAST* ast) {
     StyioIR* lowered = e->toStyioIR(this);
     parts.push_back(
       expr_is_list_like(this, e)
-        ? static_cast<StyioIR*>(SGListToString::Create(lowered))
+        ? static_cast<StyioIR*>(SCListToString::Create(lowered))
         : (expr_is_dict_like(this, e)
-            ? static_cast<StyioIR*>(SGDictToString::Create(lowered))
+            ? static_cast<StyioIR*>(SCDictToString::Create(lowered))
             : lowered));
   }
   return SIOStdStreamWrite::Create(SIOStdStreamWrite::Stream::Stdout, parts);
@@ -1997,7 +2021,7 @@ StyioAnalyzer::toStyioIR(IteratorAST* ast) {
   }
   if (ast->collection->getNodeType() == StyioNodeType::FileResource) {
     auto* fr = static_cast<FileResourceAST*>(ast->collection);
-    auto* fl = SGFileLineIter::CreateFromPath(
+    auto* fl = SIOFileLineIter::CreateFromPath(
       fr->getPath()->toStyioIR(this),
       std::move(vname),
       body);
@@ -2030,7 +2054,7 @@ StyioAnalyzer::toStyioIR(IteratorAST* ast) {
         return sl;
       }
       if (it->second.handle_family == StyioHandleFamily::File) {
-        auto* fl = SGFileLineIter::CreateFromHandle(
+        auto* fl = SIOFileLineIter::CreateFromHandle(
           nm->getAsStr(),
           std::move(vname),
           body);
@@ -2123,7 +2147,7 @@ StyioAnalyzer::toStyioIR(StreamZipAST* ast) {
   }
   bool astr = collection_elem_is_string(this, ca);
   bool bstr = collection_elem_is_string(this, cb);
-  auto* z = SGStreamZip::Create(ia, fa, std::move(va), ib, fb, std::move(vb), astr, bstr, body);
+  auto* z = SIOStreamZip::Create(ia, fa, std::move(va), ib, fb, std::move(vb), astr, bstr, body);
   if (pplan) {
     z->set_pulse_plan(std::move(pplan));
     if (z->pulse_plan && z->pulse_plan->total_bytes > 0) {
@@ -2155,12 +2179,12 @@ StyioAnalyzer::toStyioIR(InstantPullAST* ast) {
   if (!fr) {
     throw StyioTypeError("instant pull needs @file{...}, @{...}, or @stdin");
   }
-  return SGInstantPull::Create(fr->getPath()->toStyioIR(this));
+  return SIOInstantPull::Create(fr->getPath()->toStyioIR(this));
 }
 
 StyioIR*
 StyioAnalyzer::toStyioIR(TypedStdinListAST* ast) {
-  return SGListReadStdin::Create(styio_list_elem_type_name(ast->getDataType()));
+  return SIOListReadStdin::Create(styio_list_elem_type_name(ast->getDataType()));
 }
 
 StyioIR*
@@ -2293,13 +2317,13 @@ StyioAnalyzer::toStyioIR(MainBlockAST* ast) {
         pending_plan = fe->pulse_plan.get();
       }
     }
-    else if (auto* fl = dynamic_cast<SGFileLineIter*>(ir)) {
+    else if (auto* fl = dynamic_cast<SIOFileLineIter*>(ir)) {
       if (fl->pulse_plan && fl->pulse_plan->total_bytes > 0) {
         pending_region = fl->pulse_region_id;
         pending_plan = fl->pulse_plan.get();
       }
     }
-    else if (auto* sz = dynamic_cast<SGStreamZip*>(ir)) {
+    else if (auto* sz = dynamic_cast<SIOStreamZip*>(ir)) {
       if (sz->pulse_plan && sz->pulse_plan->total_bytes > 0) {
         pending_region = sz->pulse_region_id;
         pending_plan = sz->pulse_plan.get();

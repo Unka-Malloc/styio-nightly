@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of Styio tokenization, parsing, Unicode handling, and legacy/nightly parser migration; this file links to language and test SSOTs instead of redefining grammar.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 ## Mission
 
@@ -37,6 +37,7 @@ Build and test targets:
 7. Keep `src/StyioParser/SymbolRegistry.*` as the single compiler-owned default symbol table; IDE or contract emitters must consume it instead of carrying a second builtin/keyword list.
 8. When primitive token/type table fixes close a ledger item, sync [../rollups/NEXT-STAGE-GAP-LEDGER.md](../rollups/NEXT-STAGE-GAP-LEDGER.md) and the checkpoint tree with the focused regression evidence.
 9. When a symbolic token gains both prefix and infix roles, keep lexer, legacy parser, nightly parser, and token-gate tests aligned in one change.
+10. When terminal-handle or standard-stream symbolic syntax changes, keep the parser target helpers, nightly expression route, symbolic built-in declarations, and CLI smoke examples aligned with the design SSOT.
 
 ## Change Classes
 

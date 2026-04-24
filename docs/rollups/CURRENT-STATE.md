@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the compressed default read-in for the current repository state so future agents can orient themselves from active docs first; raw history, archived milestones/plans, and provenance docs are optional background, not required maintenance input.
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 ## Default Read Order
 
@@ -21,7 +21,7 @@
 ## Stable Baseline
 
 1. Project-level decision order is fixed by [`../specs/PRINCIPLES-AND-OBJECTIVES.md`](../specs/PRINCIPLES-AND-OBJECTIVES.md): performance first, usability second, and valuable rewrites are allowed even when compatibility breaks.
-2. Language/runtime acceptance is frozen through M1-M10. For standard streams, canonical writes are `expr -> @stdout/@stderr`, `expr >> @stdout/@stderr` remains accepted compatibility shorthand, and `(<< @stdin)` currently stays on the numeric instant-pull contract.
+2. Language/runtime acceptance is frozen through M1-M10. For standard streams, scalar writes are `expr -> @stdout/@stderr`, iterable writes are `items >> @stdout/@stderr`, stdin line iteration is `@stdin >> #(line) => {...}`, and immediate pull is `(<- @stdin)`. Compatibility forms remain accepted where already frozen: terminal spelling `(>_)` / symbolic stdin `<|(>_)` and legacy `(<< @stdin)` on the numeric instant-pull contract.
 3. The active parser/toolchain baseline is nightly-first rather than legacy-first. Shadow zero-fallback and five-layer pipeline coverage are part of the normal correctness story, not optional side tests.
 4. Repository docs now distinguish active maintenance docs (`design/specs/teams/assets/workflow/current rollups`), optional raw windows (`docs/history/`, `docs/review/`), and archived provenance (`docs/archive/`).
 5. File governance is now on the shared three-repo baseline: root `.gitignore` freezes the common ignore floor, `docs/**` and `tests/**` temp/build-style tracked fixtures use explicit negate rules, and `scripts/repo-hygiene-gate.py` checks both the patterns and the key governance doc links.

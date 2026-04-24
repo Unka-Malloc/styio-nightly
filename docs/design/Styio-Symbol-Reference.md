@@ -2,7 +2,7 @@
 
 **Purpose:** 各符号的 **lexer token 名与物理含义速查表**；完整语义与章节论证见 [`Styio-Language-Design.md`](./Styio-Language-Design.md)。实现 `enum class TokenKind` 时以本文与 EBNF 对照。
 
-**Last updated:** 2026-04-23
+**Last updated:** 2026-04-24
 
 **Version:** 1.0-draft  
 **Date:** 2026-03-28
@@ -16,9 +16,9 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | Symbol | Name | C++ Token Kind | Physical Semantics |
 |--------|------|----------------|-------------------|
 | `@` | Undefined / Resource Anchor | `TOK_AT` | **Alone:** honest absence (Undefined). **Before `[`:** state container declaration. **Before identifier + `{`/`(`:** resource with protocol. |
-| `@stdout` | Standard Output | `TOK_AT` + `NAME("stdout")` | Built-in write-only stream resource (fd 1). Canonical write: `expr -> @stdout`; accepted shorthand: `expr >> @stdout`. |
-| `@stderr` | Standard Error | `TOK_AT` + `NAME("stderr")` | Built-in write-only stream resource (fd 2, unbuffered). Canonical write: `expr -> @stderr`; accepted shorthand: `expr >> @stderr`. |
-| `@stdin` | Standard Input | `TOK_AT` + `NAME("stdin")` | Built-in read-only stream resource (fd 0). Iterate via `@stdin >> #(line) => {...}`; instant pull via `(<< @stdin)`. Current instant-pull lowering keeps the scalar `cstr -> i64` contract. |
+| `@stdout` | Standard Output | `TOK_AT` + `NAME("stdout")` | Built-in write-only stream resource (fd 1). Scalar write: `expr -> @stdout`; iterable write: `items >> @stdout`. |
+| `@stderr` | Standard Error | `TOK_AT` + `NAME("stderr")` | Built-in write-only stream resource (fd 2, unbuffered). Scalar write: `expr -> @stderr`; iterable write: `items >> @stderr`. |
+| `@stdin` | Standard Input | `TOK_AT` + `NAME("stdin")` | Built-in read-only stream resource (fd 0). Iterate via `@stdin >> #(line) => {...}`. Symbolic definition forms include `{ <\|[>_] }`, `{ <\|(>_) }`, and expanded `{ <\| <- [>_] }`. Legacy `(<< @stdin)` is compatibility-only, not canonical design spelling. |
 | `$` | State Reference / Capture | `TOK_DOLLAR` | **Before identifier:** read from shadow buffer. **Before `(`:** capture list in function decl. **Before string:** format string. |
 
 ---
@@ -27,14 +27,14 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 
 | Symbol | Name | C++ Token Kind | Semantics | Example |
 |--------|------|----------------|-----------|---------|
-| `>>` | Pipe / Iterate / Resource-Write Shorthand | `TOK_PIPE` | **Before iterator tail:** push pulse from source into consumer. **Before resource atom (`@file{...}`, `@stdout`, `@stderr`, `@stdin`)**: parse as `resource_write` shorthand. `@stdin` remains semantically read-only. | `prices >> #(p) => { ... }`, `x >> @stdout` |
+| `>>` | Pipe / Iterate / Resource-Write Shorthand | `TOK_PIPE` | **Before iterator tail:** push pulse from source into consumer. **Before resource atom (`@file{...}`, `@stdout`, `@stderr`, `@stdin`)**: parse as `resource_write` shorthand. **Before `[>_]`, `@stdout`, or `@stderr`:** iterable text serialization only; plain strings must use `->` or explicit `text.lines() >> ...`. `@stdin` remains semantically read-only. | `prices >> #(p) => { ... }`, `items >> @stdout`, `text.lines() >> [>_]` |
 | `->` | Forward / Redirect | `TOK_ARROW_RIGHT` | Redirect data to a physical destination | `ma5 -> @database(...)` |
-| `<-` | Acquire Handle | `TOK_ARROW_LEFT` | Extract live handle from resource | `f <- @file{"data.txt"}` |
-| `<<` | Write / Shift-Back | `TOK_SHIFT_BACK` | **In `[<<, n]`:** history probe. **Standalone:** write to resource. **In `(<< @res)`:** instant pull. |
+| `<-` | Acquire / Pull | `TOK_ARROW_LEFT` | Extract or acquire from a resource; used in expanded stdin symbolic definition as `<\| <- [>_]`. | `f <- @file{"data.txt"}` |
+| `<<` | Write / Shift-Back | `TOK_SHIFT_BACK` | **In `[<<, n]`:** history probe. **Legacy `(<< @res)`:** compatibility instant pull only; avoid for new read/pull design. |
 | `<\|` | Return / One-Shot Apply | `YIELD_PIPE` | **Statement start:** return value from block. **Infix:** left-associative one-shot resume/apply; `f <\| a <\| b == f(a)(b)`. | `<\| x * x`, `f <\| 1` |
 | `\|<\|` | Inline Return | `RETURN_PIPE` | One-line return form, ended by `\|;`. | `...; \|<\| result \|;` |
 | `\|;` | Statement Separator | `PIPE_SEMICOLON` | Explicit separator for compressed one-line blocks. | `x = 1; \|<\| x \|;` |
-| `>_` | Terminal Device | `TOK_IO_BUF` | **As statement:** `>_(expr)` prints to stdout (legacy). **As value:** first-class terminal device handle; `expr -> ( >_ )` writes stdout, `!(expr) -> ( >_ )` writes stderr, `<< ( >_ )` reads stdin. | `>_("hello")`, `42 -> ( >_ )` |
+| `>_` | Terminal Device | `TOK_IO_BUF` | **As statement:** `>_(expr)` prints to stdout (legacy). **As value:** first-class terminal device handle. Canonical symbolic spelling is `[>_]`; `(>_)` remains compatibility. | `>_("hello")`, `<\|(>_)` |
 
 ---
 
@@ -147,7 +147,8 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | `>>` as standalone statement | Continue (1 level) |
 | `>>>` standalone | Continue (2 levels) |
 | `[<<, n]` inside brackets | History probe selector |
-| `(<< @res)` in parens | Instant pull |
+| `(<- @res)` in parens | Immediate pull |
+| `(<< @res)` in parens | Legacy compatibility pull |
 | `<~` | Wave merge (always 2-char token) |
 | `?( ... )` then `<~` | Same as `( ... ) <~`; lexer sees `?` + `(` | Parser: `TOK_QUEST` at expression start requires `(`; body matches `parse_tuple_exprs`. |
 | `~>` | Wave dispatch (always 2-char token) |

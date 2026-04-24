@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of LLVM codegen, JIT integration, external runtime helpers, handle tables, and runtime safety contracts.
 
-**Last updated:** 2026-04-22
+**Last updated:** 2026-04-24
 
 ## Mission
 
@@ -36,6 +36,8 @@ Related docs:
 8. Keep `stdout/stderr` helper hooks lossless: runtime log replay may enrich the artifact stream, but must not change observable program output semantics.
 9. When `StyioJIT_ORC` needs runtime helpers, register them explicitly through `absoluteSymbols`; do not rely on host-binary export behavior or `DynamicLibrarySearchGenerator` alone, because test and tool binaries may not expose `ExternLib` symbols in their dynamic symbol table.
 10. Keep call emission and verifier handling fail-closed: unknown `SGCall` targets, exact-arity mismatches, runtime helper arity mismatches, and LLVM verifier failures must throw structured errors instead of returning zero/null placeholders or printing and continuing.
+11. When adding string/list bridge helpers such as `string.lines()`, update the extern helper, JIT symbol table, LLVM call emission, temporary handle ownership, and a security/codegen test in the same checkpoint.
+12. Treat GenIR headers as three physical ownership domains: `SGIR.hpp` for general nodes, `SIOIR.hpp` for IO/resource/std-stream nodes, and `SCIR.hpp` for collection/data-structure nodes. Codegen visitors may include `GenIR.hpp` for compatibility, but new lowering support should preserve the SG/SIO/SC ownership boundary.
 
 ## Change Classes
 
