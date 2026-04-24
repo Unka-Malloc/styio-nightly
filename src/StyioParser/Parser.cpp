@@ -3287,29 +3287,19 @@ parse_hash_tag(StyioContext& context) {
   context.skip();
   if (context.match(StyioTokenType::TOK_COLON) /* : */) {
     context.skip();
-    if (context.check(StyioTokenType::BOUNDED_BUFFER_OPEN)) {
-      ret_type = parse_styio_type(context);
-    }
-    else if (context.check(StyioTokenType::NAME)) {
-      auto type_name = parse_name_as_str_unsafe(context);
-      ret_type = TypeAST::Create(type_name);
-    }
-    else if (context.match(StyioTokenType::TOK_LPAREN) /* ( */) {
+    if (context.match(StyioTokenType::TOK_LPAREN) /* ( */) {
       std::vector<TypeAST*> types;
       do {
         context.skip();
-        if (context.check(StyioTokenType::NAME)) {
-          TypeAST* type_name = parse_name_as_type_unsafe(context);
-          types.push_back(type_name);
-        }
-        else if (context.check(StyioTokenType::BOUNDED_BUFFER_OPEN)) {
-          types.push_back(parse_styio_type(context));
-        }
+        types.push_back(parse_styio_type(context));
       } while (context.try_match(StyioTokenType::TOK_COMMA) /* , */);
 
       context.try_match_panic(StyioTokenType::TOK_RPAREN); /* ) */
 
       ret_type = TypeTupleAST::Create(types);
+    }
+    else {
+      ret_type = parse_styio_type(context);
     }
   }
 
@@ -3423,11 +3413,11 @@ parse_params(StyioContext& context) {
       context.skip();
       if (context.match(StyioTokenType::TOK_COLON) /* : */) {
         context.skip();
-        auto var_type = parse_name_as_str(context);
+        TypeAST* var_type = parse_styio_type(context);
 
         params.push_back(ParamAST::Create(
           var_name,
-          TypeAST::Create(var_type)
+          var_type
         ));
       }
       else {
@@ -3894,12 +3884,10 @@ parse_stmt_or_expr_legacy(
     } break;
 
     case StyioTokenType::TOK_HAT: {
-      unsigned depth = 0;
       while (context.check(StyioTokenType::TOK_HAT)) {
-        depth += 1;
         context.move_forward(1, "break^");
       }
-      return BreakAST::Create(depth > 0 ? depth : 1u);
+      return BreakAST::Create(1u);
     } break;
 
     case StyioTokenType::ITERATOR: {

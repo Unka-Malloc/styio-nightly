@@ -622,7 +622,8 @@ class BreakAST : public StyioASTTraits<BreakAST>
 
 public:
   explicit BreakAST(unsigned d = 1) :
-      depth_(d) {
+      depth_(1) {
+    (void)d;
   }
 
   static BreakAST* Create(unsigned d = 1) {

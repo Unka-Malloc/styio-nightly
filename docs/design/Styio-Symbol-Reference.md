@@ -30,7 +30,7 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | `>>` | Pipe / Iterate / Resource-Write Shorthand | `TOK_PIPE` | **Before iterator tail:** push pulse from source into consumer. **Before resource atom (`@file{...}`, `@stdout`, `@stderr`, `@stdin`)**: parse as `resource_write` shorthand. **Before `[>_]`, `@stdout`, or `@stderr`:** iterable text serialization only; plain strings must use `->` or explicit `text.lines() >> ...`. `@stdin` remains semantically read-only. | `prices >> #(p) => { ... }`, `items >> @stdout`, `text.lines() >> [>_]` |
 | `->` | Forward / Redirect | `TOK_ARROW_RIGHT` | Redirect data to a physical destination | `ma5 -> @database(...)` |
 | `<-` | Acquire / Pull | `TOK_ARROW_LEFT` | Extract or acquire from a resource; used in expanded stdin symbolic definition as `<\| <- [>_]`. | `f <- @file{"data.txt"}` |
-| `<<` | Write / Shift-Back | `TOK_SHIFT_BACK` | **In `[<<, n]`:** history probe. **Legacy `(<< @res)`:** compatibility instant pull only; avoid for new read/pull design. |
+| `<<` | Write / Shift-Back | `TOK_SHIFT_BACK` | **Retired in `[<<, n]`:** old history probe spelling. **Legacy `(<< @res)`:** compatibility instant pull only; avoid for new read/pull design. |
 | `<\|` | Return / One-Shot Apply | `YIELD_PIPE` | **Statement start:** return value from block. **Infix:** left-associative one-shot resume/apply; `f <\| a <\| b == f(a)(b)`. | `<\| x * x`, `f <\| 1` |
 | `\|<\|` | Inline Return | `RETURN_PIPE` | One-line return form, ended by `\|;`. | `...; \|<\| result \|;` |
 | `\|;` | Statement Separator | `PIPE_SEMICOLON` | Explicit separator for compressed one-line blocks. | `x = 1; \|<\| x \|;` |
@@ -43,8 +43,8 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | Symbol | Name | C++ Token Kind | Direction | Semantics |
 |--------|------|----------------|-----------|-----------|
 | `<~` | Conditional Merge | `TOK_WAVE_LEFT` | ← (pull toward receiver) | `val = (cond) <~ a \| b` |
-| `~>` | Conditional Dispatch | `TOK_WAVE_RIGHT` | → (push toward target) | `(cond) ~> target \| @` |
-| `\|` | Fallback / Else | `TOK_PIPE_SINGLE` | — | Else-branch for wave operators; fallback for `@` recovery |
+| `~>` | Conditional Dispatch | `TOK_WAVE_RIGHT` | → (push toward target) | `(cond) ~> target \| fallback`; use `?(cond) => { ... }` for no-op else |
+| `\|` | Fallback / Else | `TOK_PIPE_SINGLE` | — | Else-branch for wave operators; fallback for runtime absence recovery |
 
 ---
 
@@ -52,9 +52,9 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 
 | Syntax | Name | Context | Semantics |
 |--------|------|---------|-----------|
-| `[?, cond]` | Predicate Guard | Postfix on any value | Returns value if `cond` is true, else `@` |
-| `[?=, val]` | Equality Probe | Postfix on any value | Returns value if `value == val`, else `@` |
-| `[<<, n]` | History Probe | Postfix on `$var` | Returns value from `n` pulses ago |
+| `[?, cond]` | Retired Predicate Guard | Inactive old milestone syntax | Use `?(cond) <~ value \| fallback` or `?(cond) => { ... }` |
+| `[?=, val]` | Retired Equality Probe | Inactive old milestone syntax | Use `?=` match blocks |
+| `[<<, n]` | Retired History Probe | Inactive old milestone syntax | Future history access must re-enter through a revised selector/state-topology fixture |
 | `[avg, n]` | Moving Average | Postfix on stream | Compiler intrinsic: O(1) sliding sum |
 | `[max, n]` | Rolling Maximum | Postfix on stream | Compiler intrinsic: monotonic queue |
 | `[min, n]` | Rolling Minimum | Postfix on stream | Compiler intrinsic: monotonic queue |
@@ -70,7 +70,7 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | `?=` | Pattern Match | `TOK_MATCH` | Trigger pattern matching block |
 | `?(expr)` | Guard / Paren marker | `TOK_QUEST` + `(` | **After `[...]` infinite:** `? (expr) >>` → conditioned loop (`InfiniteLoopAST`). **In a normal `primary_expr`:** same as `(expr)`; optional style before `<~` wave merge condition. |
 | `=>` | Map / Then | `TOK_FAT_ARROW` | Connects pattern/param to result/body |
-| `^` ... `^^^^` | Break | `BREAK_TOKEN(n)` | Exit `n` levels of enclosing loops |
+| `^` ... `^^^^` | Break | `BREAK_TOKEN` | Exit the nearest enclosing loop; count is normalized to 1 |
 | `>>` ... `>>>>` | Continue | `CONTINUE_TOKEN(n)` | Skip to next iteration, `n-1` levels up |
 | `[...]` | Infinite Generator | `[` + `TOK_ELLIPSIS` + `]` | Produces infinite pulse stream |
 | `&` | Stream Zip | `TOK_AMPERSAND` | Align two streams (both must deliver) |
@@ -146,13 +146,13 @@ This document serves as the definitive lookup table for all symbols in Styio. It
 | `>>` after expr, before `#`/`{`/ident | Pipe operator |
 | `>>` as standalone statement | Continue (1 level) |
 | `>>>` standalone | Continue (2 levels) |
-| `[<<, n]` inside brackets | History probe selector |
+| `[<<, n]` inside brackets | Retired history probe selector; not active acceptance syntax |
 | `(<- @res)` in parens | Immediate pull |
 | `(<< @res)` in parens | Legacy compatibility pull |
 | `<~` | Wave merge (always 2-char token) |
 | `?( ... )` then `<~` | Same as `( ... ) <~`; lexer sees `?` + `(` | Parser: `TOK_QUEST` at expression start requires `(`; body matches `parse_tuple_exprs`. |
 | `~>` | Wave dispatch (always 2-char token) |
-| `^` contiguous | Break (count = number of `^`) |
+| `^` contiguous | Break (count ignored; always nearest loop) |
 | `^^ ^^` with space | **Illegal** — two separate breaks, rejected by parser |
 
 ---
@@ -185,6 +185,6 @@ TOK_DOLLAR_PAREN,    // $(
 TOK_DOLLAR_STRING,   // $"..."
 TOK_DBQUESTION,      // ??
 TOK_AMPERSAND,       // & (stream zip)
-TOK_BREAK(int n),    // ^...^ with depth
+TOK_BREAK,           // ^...^ normalized to nearest-loop break
 TOK_CONTINUE(int n), // >>...> with depth
 ```

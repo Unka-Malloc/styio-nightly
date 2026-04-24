@@ -143,7 +143,7 @@ class InfiniteLoopAST;
 
   - End-Of-Line
   - `pass` ..........
-  - `break` ^^^^^^^^^
+  - `break` ^... (nearest loop)
   - `continue` >>>>>>
   - `return` <<<<<<<<
 */

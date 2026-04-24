@@ -187,17 +187,13 @@ buy_signal = cross_over($ma5, $ma20)
 sell_signal = cross_under($ma5, $ma20)
 ```
 
-**Expansion:** The compiler desugars these into native Styio:
+**2026-04-24 revision:** `cross_over(a, b)` and `cross_under(a, b)` wait for the
+revised history selector. The old `a[<<, 1]` spelling is retired from active
+syntax and must not be used in new milestone fixtures.
 
-```
-// cross_over(a, b) expands to:
-(a > b) && (a[<<, 1] <= b[<<, 1])
-
-// cross_under(a, b) expands to:
-(a < b) && (a[<<, 1] >= b[<<, 1])
-```
-
-**Requirement:** Both `a` and `b` must be `$`-prefixed state references (they need history). If either operand lacks `[<<, 1]` capability, the compiler emits an error.
+**Requirement:** Both `a` and `b` must be `$`-prefixed state references once the
+revised history selector lands. Do not reintroduce the old `[<<, 1]` spelling in
+active tests.
 
 **Output:** Strict `bool` — never `@`.
 
@@ -260,7 +256,9 @@ On new value x:
 **Syntax:**
 
 ```
-(is_valid(p)) ~> process(p) | @
+?(is_valid(p)) => {
+    process(p)
+}
 ```
 
 **LLVM IR:** Single `icmp` or metadata flag test. Emits `i1` (boolean).
@@ -338,7 +336,9 @@ Compiles to an **async non-blocking** call to the trade execution driver. Must n
 ### 6.2 State Snapshot
 
 ```
-(time == 15:00) ~> GlobalState.snapshot() | @
+?(time == 15:00) => {
+    GlobalState.snapshot()
+}
 ```
 
 Triggers `mmap`-based or copy-on-write serialization of the entire state ledger to disk.

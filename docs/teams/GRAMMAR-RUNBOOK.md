@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of the repository-local Tree-sitter grammar and edit-time syntax backend contract.
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-24
 
 ## Mission
 
@@ -26,6 +26,7 @@ Primary paths:
 3. Regenerate artifacts from `grammar/tree-sitter-styio/`.
 4. Review generated diffs for suspicious broad churn.
 5. Run IDE tests with `STYIO_ENABLE_TREE_SITTER=ON`; when relevant, also configure with it OFF to preserve tolerant fallback.
+6. For token repetitions such as `^...`, keep edit-time recognition tolerant while following the language SSOT for semantics; caret count is not a Tree-sitter-owned break-depth contract.
 
 ## Change Classes
 

@@ -132,10 +132,11 @@ TOK_DBQUESTION     = '??' ;
 
 ### 2.4 Variable-Length Tokens
 
-These tokens are measured by counting contiguous repetitions:
+These tokens use contiguous repetitions. Break keeps the spelling flexible but does
+not assign semantic depth to the count.
 
 ```ebnf
-BREAK_TOKEN        = '^' { '^' } ;           (* length >= 1, contiguous *)
+BREAK_TOKEN        = '^' { '^' } ;           (* length >= 1, contiguous, depth = 1 *)
 CONTINUE_TOKEN     = '>' '>' { '>' } ;       (* length >= 2, contiguous, standalone context *)
 ```
 
@@ -345,8 +346,11 @@ unary_expr         = ( '!' | '-' ) unary_expr
 postfix_expr       = primary_expr { selector | call | member_access } ;
 
 selector           = '[' [ selector_mode ',' ] expression_list ']' ;
-selector_mode      = '?' | '?=' | '<<' | 'avg' | 'max' | 'min' | 'std' | 'rsi'
+selector_mode      = 'avg' | 'max' | 'min' | 'std' | 'rsi'
                    | identifier ;
+
+(* Retired from active syntax on 2026-04-24: '[?, cond]', '[?=, val]', and
+   '$state[<<, n]'. Historical milestone docs may mention them as provenance. *)
 
 call               = '(' [ expression_list ] ')' ;
 
@@ -462,7 +466,7 @@ collection_pattern = '[' { pattern { ',' pattern } } ']'
 ## 12. Control Flow Statements
 
 ```ebnf
-break_stmt         = BREAK_TOKEN ;      (* ^ or ^^ or ^^^ etc. *)
+break_stmt         = BREAK_TOKEN ;      (* ^ or ^^ or ^^^ etc.; always nearest loop *)
 continue_stmt      = CONTINUE_TOKEN ;   (* >> or >>> or >>>> etc. *)
 ```
 
@@ -480,7 +484,7 @@ When the parser encounters `>>` (or longer `>>>`, `>>>>`, etc.):
 
 ### Rule 2: `@` Disambiguation
 
-- `@` alone (not followed by `[`, identifier, `{`, `(`): **Undefined value**
+- `@` alone as a source expression: **retired**. Use resource/intrinsic-produced absence; active milestone fixtures must not author bare `@` directly.
 - `@[`: **State container declaration**
 - `@` followed by identifier then `{` or `(`: **Resource with protocol**
 - `@{` or `@(`: **Anonymous resource**

@@ -2234,11 +2234,11 @@ StyioToLLVM::toLLVMIR(SCDictLiteral* node) {
 
 llvm::Value*
 StyioToLLVM::toLLVMIR(SGBreak* node) {
-  if (loop_stack_.empty() || node->depth == 0 || node->depth > loop_stack_.size()) {
+  (void)node;
+  if (loop_stack_.empty()) {
     return nullptr;
   }
-  size_t ix = loop_stack_.size() - node->depth;
-  theBuilder->CreateBr(loop_stack_[ix].break_dest);
+  theBuilder->CreateBr(loop_stack_.back().break_dest);
   return nullptr;
 }
 

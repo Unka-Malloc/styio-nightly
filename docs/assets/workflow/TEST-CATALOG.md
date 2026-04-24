@@ -2,7 +2,7 @@
 
 **Purpose:** 将 **里程碑集成测试** 按功能域映射到 **输入 `.styio`、golden/副作用路径与 `ctest` 命令**；权威自动化入口见 `tests/CMakeLists.txt`。维护规则见 [`../../specs/DOCUMENTATION-POLICY.md`](../../specs/DOCUMENTATION-POLICY.md)，项目级优先级顺序见 [`../../specs/PRINCIPLES-AND-OBJECTIVES.md`](../../specs/PRINCIPLES-AND-OBJECTIVES.md)。
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-24
 
 **批量自动化（所有里程碑集成用例）：**
 
@@ -78,7 +78,7 @@ ctest --test-dir build -L milestone
 | `m3_t05_for_each` | `tests/milestones/m3/t05_for_each.styio` | `tests/milestones/m3/expected/t05_for_each.out` | `ctest --test-dir build -R '^m3_t05_for_each$'` |
 | `m3_t06_inf_break` | `tests/milestones/m3/t06_inf_break.styio` | `tests/milestones/m3/expected/t06_inf_break.out` | `ctest --test-dir build -R '^m3_t06_inf_break$'` |
 | `m3_t07_while` | `tests/milestones/m3/t07_while.styio` | `tests/milestones/m3/expected/t07_while.out` | `ctest --test-dir build -R '^m3_t07_while$'` |
-| `m3_t08_multi_break` | `tests/milestones/m3/t08_multi_break.styio` | `tests/milestones/m3/expected/t08_multi_break.out` | `ctest --test-dir build -R '^m3_t08_multi_break$'` |
+| `m3_t08_multi_break` | `tests/milestones/m3/t08_multi_break.styio` | `tests/milestones/m3/expected/t08_multi_break.out` (contiguous `^...` normalizes to nearest-loop break) | `ctest --test-dir build -R '^m3_t08_multi_break$'` |
 | `m3_t09_continue` | `tests/milestones/m3/t09_continue.styio` | `tests/milestones/m3/expected/t09_continue.out` | `ctest --test-dir build -R '^m3_t09_continue$'` |
 | `m3_t10_fizzbuzz` | `tests/milestones/m3/t10_fizzbuzz.styio` | `tests/milestones/m3/expected/t10_fizzbuzz.out` | `ctest --test-dir build -R '^m3_t10_fizzbuzz$'` |
 
@@ -86,7 +86,13 @@ ctest --test-dir build -L milestone
 
 ---
 
-## 4. 波算子、@ 传播、fallback（M4）
+## 4. 波算子与当前有效 fallback（M4）
+
+**2026-04-24 修订：** M4 早期用例中的通用 bare `@` 字面量、`x[?, cond]`
+guard selector、`x[?=, val]` equality probe 已从活动里程碑作废。当前活动 M4 只保留
+已被 nightly parser 和 codegen 接受、且不需要 source-level bare `@` 的 wave/fallback
+形态；`| @` no-op arm 也按旧 absence 写法处理。作废 fixture 不保留在
+`tests/milestones/` 中。
 
 | CTest | Input | Output / Oracle | Automation |
 |-------|-------|-----------------|------------|
@@ -94,18 +100,7 @@ ctest --test-dir build -L milestone
 | `m4_t16_wave_merge_question_cond` | `tests/milestones/m4/t16_wave_merge_question_cond.styio` | `tests/milestones/m4/expected/t16_wave_merge_question_cond.out` | `ctest --test-dir build -R '^m4_t16_wave_merge_question_cond$'` |
 | `m4_t02_wave_false` | `tests/milestones/m4/t02_wave_false.styio` | `tests/milestones/m4/expected/t02_wave_false.out` | `ctest --test-dir build -R '^m4_t02_wave_false$'` |
 | `m4_t03_wave_dispatch` | `tests/milestones/m4/t03_wave_dispatch.styio` | `tests/milestones/m4/expected/t03_wave_dispatch.out` | `ctest --test-dir build -R '^m4_t03_wave_dispatch$'` |
-| `m4_t04_dispatch_void` | `tests/milestones/m4/t04_dispatch_void.styio` | `tests/milestones/m4/expected/t04_dispatch_void.out` | `ctest --test-dir build -R '^m4_t04_dispatch_void$'` |
-| `m4_t05_undefined` | `tests/milestones/m4/t05_undefined.styio` | `tests/milestones/m4/expected/t05_undefined.out` | `ctest --test-dir build -R '^m4_t05_undefined$'` |
-| `m4_t06_at_propagate` | `tests/milestones/m4/t06_at_propagate.styio` | `tests/milestones/m4/expected/t06_at_propagate.out` | `ctest --test-dir build -R '^m4_t06_at_propagate$'` |
-| `m4_t07_at_logic` | `tests/milestones/m4/t07_at_logic.styio` | `tests/milestones/m4/expected/t07_at_logic.out` | `ctest --test-dir build -R '^m4_t07_at_logic$'` |
-| `m4_t08_fallback` | `tests/milestones/m4/t08_fallback.styio` | `tests/milestones/m4/expected/t08_fallback.out` | `ctest --test-dir build -R '^m4_t08_fallback$'` |
 | `m4_t09_fallback_noop` | `tests/milestones/m4/t09_fallback_noop.styio` | `tests/milestones/m4/expected/t09_fallback_noop.out` | `ctest --test-dir build -R '^m4_t09_fallback_noop$'` |
-| `m4_t10_guard` | `tests/milestones/m4/t10_guard.styio` | `tests/milestones/m4/expected/t10_guard.out` | `ctest --test-dir build -R '^m4_t10_guard$'` |
-| `m4_t11_guard_pass` | `tests/milestones/m4/t11_guard_pass.styio` | `tests/milestones/m4/expected/t11_guard_pass.out` | `ctest --test-dir build -R '^m4_t11_guard_pass$'` |
-| `m4_t12_eq_probe` | `tests/milestones/m4/t12_eq_probe.styio` | `tests/milestones/m4/expected/t12_eq_probe.out` | `ctest --test-dir build -R '^m4_t12_eq_probe$'` |
-| `m4_t13_chain` | `tests/milestones/m4/t13_chain.styio` | `tests/milestones/m4/expected/t13_chain.out` | `ctest --test-dir build -R '^m4_t13_chain$'` |
-| `m4_t14_func_gate` | `tests/milestones/m4/t14_func_gate.styio` | `tests/milestones/m4/expected/t14_func_gate.out` | `ctest --test-dir build -R '^m4_t14_func_gate$'` |
-| `m4_t15_deep_propagate` | `tests/milestones/m4/t15_deep_propagate.styio` | `tests/milestones/m4/expected/t15_deep_propagate.out` | `ctest --test-dir build -R '^m4_t15_deep_propagate$'` |
 
 **整组：** `ctest --test-dir build -L m4`
 
@@ -129,14 +124,17 @@ ctest --test-dir build -L milestone
 
 ## 6. 状态容器与流上算子（M6）
 
+**2026-04-24 修订：** `$state[<<, n]` history selector 与依赖 bare `@`
+冷启动计数的旧 fixture 已从活动里程碑作废。当前活动 M6 只保留已实现的 scan、
+running max、window avg 与 frame-lock 用例；后续 history 新语法必须以新的 fixture
+重新进入本表。
+
 | CTest | Input | Output / Oracle | Automation |
 |-------|-------|-----------------|------------|
 | `m6_t01_scan` | `tests/milestones/m6/t01_scan.styio` | `tests/milestones/m6/expected/t01_scan.out` | `ctest --test-dir build -R '^m6_t01_scan$'` |
 | `m6_t02_running_max` | `tests/milestones/m6/t02_running_max.styio` | `tests/milestones/m6/expected/t02_running_max.out` | `ctest --test-dir build -R '^m6_t02_running_max$'` |
 | `m6_t03_window_avg` | `tests/milestones/m6/t03_window_avg.styio` | `tests/milestones/m6/expected/t03_window_avg.out` | `ctest --test-dir build -R '^m6_t03_window_avg$'` |
-| `m6_t04_history` | `tests/milestones/m6/t04_history.styio` | `tests/milestones/m6/expected/t04_history.out` | `ctest --test-dir build -R '^m6_t04_history$'` |
 | `m6_t05_frame_lock` | `tests/milestones/m6/t05_frame_lock.styio` | `tests/milestones/m6/expected/t05_frame_lock.out` | `ctest --test-dir build -R '^m6_t05_frame_lock$'` |
-| `m6_t06_cold_start` | `tests/milestones/m6/t06_cold_start.styio` | `tests/milestones/m6/expected/t06_cold_start.out` | `ctest --test-dir build -R '^m6_t06_cold_start$'` |
 
 **整组：** `ctest --test-dir build -L m6`
 
@@ -237,7 +235,7 @@ ctest --test-dir build -L milestone
 
 | 目标 | 说明 | Automation |
 |------|------|------------|
-| `styio_security_test` | `tests/security/styio_security_test.cpp`：覆盖 lexer/Unicode、AST ownership、runtime helper、handle table、ParserContext EOF/越界钳制、字符级 API 安全默认值、parser path 边界、nightly parser expr/stmt 子集兼容与 shadow fallback 稳定性。这里主要盯住“崩溃/越界/错误子码漂移/所有权回归”四类风险。 | `ctest --test-dir build -L security` 或 `ctest --test-dir build -L safety` |
+| `styio_security_test` | `tests/security/styio_security_test.cpp`：覆盖 lexer/Unicode、AST ownership、runtime helper、handle table、ParserContext EOF/越界钳制、字符级 API 安全默认值、parser path 边界、nightly parser expr/stmt 子集兼容、generic function type annotations、lowering smoke 与 shadow fallback 稳定性。这里主要盯住“崩溃/越界/错误子码漂移/所有权回归”四类风险。 | `ctest --test-dir build -L security` 或 `ctest --test-dir build -L safety` |
 
 ---
 

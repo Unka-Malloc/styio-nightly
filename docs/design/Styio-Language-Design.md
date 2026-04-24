@@ -25,7 +25,7 @@ The name encodes the language's identity:
 |--------|-------------|
 | **Pure Symbolism** | Replace natural-language keywords (`if`, `while`, `for`, `def`) with unambiguous symbolic operators (`?=`, `>>`, `#`, `@`). |
 | **Intent Awareness** | The compiler statically analyzes field access patterns and pushes intent down to resource drivers (e.g., only fetch needed database columns). |
-| **Honest Missing** | The native `@` (Undefined) propagates algebraically through all operations: `10 + @ = @`. No silent defaults, no hidden NaN traps. |
+| **Honest Missing** | Runtime absence is represented as `@` in diagnostics and stream algebra. Source-level bare `@` is retired from active syntax; current code should obtain absence from resources or intrinsics instead of authoring it directly. |
 | **Thick Library, Thin Artifact** | Development uses a rich standard library with protocol detection and AI-assisted probing. Production builds perform dead-code elimination to produce minimal binaries. |
 
 ### 1.2 Compiler Toolchain
@@ -88,14 +88,20 @@ Types are annotated with `:` on both parameters and return values:
 - `a: f32` — parameter type
 - `:` always binds a **type** to its left-hand identifier
 
-### 3.4 The Undefined Type: `@`
+### 3.4 Runtime Absence: `@`
 
-`@` is a first-class value representing **honest absence**. It is not `null`, not `0`, not `NaN` — it is the explicit admission that data does not exist.
+`@` represents **honest absence** at runtime and in diagnostics. It is not `null`, not `0`, not `NaN` — it is the explicit admission that data does not exist.
+
+**2026-04-24 syntax revision:** user-authored bare `@` is no longer part of the
+active source language. Historical fixtures such as `x = @`, `x + @`,
+`x -> @stdout`, and `(cond) ~> sink | @` were retired from active milestones.
+`@` remains visible as an absence marker produced by resources/intrinsics and in
+diagnostics.
 
 **Propagation rules:**
-- `x + @ = @` for any arithmetic operation
-- `x && @ = @` for any logical operation
-- `@` short-circuits through all expressions until explicitly intercepted
+- absence produced by resource/intrinsic execution propagates through supported
+  arithmetic and logical operators
+- absence short-circuits through expressions until explicitly intercepted
 
 **Diagnostic tainting (debug mode):**
 In debug builds, `@` carries metadata (reason code, source location) enabling root-cause tracing via `.reason()`.
@@ -161,7 +167,7 @@ prices >> #(p) => { <| p * 2 }
 Functions can explicitly capture external variables by reference:
 
 ```
-trade $(bal, is_open) := my_strategy[?, is_open][?, bal > 100]
+trade $(bal, is_open) := my_strategy <| bal <| is_open
 ```
 
 The `$(...)` list declares a **reactive binding** — the function re-evaluates whenever captured variables change.
@@ -213,18 +219,20 @@ x ?= {
 
 The collection becomes a finite pulse source. Each element is bound to `item`.
 
-### 6.5 Break: `^^^^` (Variable Length)
+### 6.5 Break: `^...` (Immediate Loop)
 
 ```
-^^^^    // break out of 4 nested loops
-^^      // break out of 2
-^       // break out of 1
+^       // break out of the nearest enclosing loop
+^^      // same as ^
+^^^^    // same as ^
 ```
 
 Rules:
 - `^` characters must be **contiguous** (no spaces)
-- `^^ ^^` is **illegal** — the compiler rejects it
-- Depth exceeding current loop nesting produces a compile-time error
+- any contiguous run of `^` is one break statement
+- the count of `^` characters has no semantic depth and is normalized to 1
+- `^^ ^^` is **illegal** — it is two adjacent break statements, not a deeper break
+- a break outside an enclosing loop is rejected by code generation
 
 ### 6.6 Continue: `>>` (Variable Length, ≥2)
 
@@ -274,7 +282,9 @@ Read as: "If condition holds, wave toward `a`; otherwise fall back to `|` value 
 ### 7.2 Conditional Dispatch: `~>`
 
 ```
-(signal) ~> order_logic(p) | @
+?(signal) => {
+    order_logic(p)
+}
 ```
 
 Read as: "If signal is truthy, dispatch pulse to `order_logic`; otherwise route to `@` (void)."
@@ -469,20 +479,16 @@ Allocates a single persistent scalar initialized to `0.0`. Updated every frame.
 
 ```
 $ma5          // current value of the ma5 state
-$ma5[<<, 1]   // value from 1 pulse ago (history probe)
 $total        // current accumulator value
 ```
 
 The `$` prefix is **mandatory** when referencing stateful variables. Without `@[...]` declaration, using `$var` is a compile error.
 
-### 9.4 History Probe: `[<<, n]`
+### 9.4 Retired History Probe: `[<<, n]`
 
-```
-$ma5[<<, 1]    // previous frame's ma5
-$ma5[<<, 5]    // 5 frames ago
-```
-
-Only valid on `$`-prefixed state references. The compiler verifies that the declared buffer length ≥ `n`.
+The `$state[<<, n]` spelling belonged to the old M6 history-probe draft and is
+not active syntax. Future history access must be introduced through a revised
+state-topology fixture instead of reviving this selector.
 
 ### 9.5 Pulse Frame Lock
 
@@ -580,17 +586,16 @@ a[0..5]     // slice: indices 0 to 4
 a[2...]     // slice: index 2 to end
 ```
 
-### 11.2 Guard Selector: `[?, cond]`
+### 11.2 Retired Guard Selector: `[?, cond]`
 
-```
-price[?, volume > 1000]    // returns price if condition holds, else @
-```
+The postfix guard selector was an early draft and is no longer active syntax.
+Use `?(cond) <~ value | fallback` for value selection, or normal `?(cond) => { ... }`
+blocks for statement-level control.
 
-### 11.3 Equality Probe: `[?=, val]`
+### 11.3 Retired Equality Probe: `[?=, val]`
 
-```
-a[?=, 3]    // returns a if a == 3, else @
-```
+The postfix equality probe was retired with the guard selector. Use `?=` match
+blocks for equality-style branching.
 
 ### 11.4 Plugin Operators: `[op, n]`
 
@@ -602,13 +607,13 @@ prices[std, 20]    // 20-period standard deviation
 
 These are **compiler intrinsics** — the compiler inlines optimized algorithms (O(1) sliding sum, monotonic queue, Welford's algorithm) directly into the generated code.
 
-### 11.5 History Probe: `[<<, n]`
+### 11.5 Retired History Probe: `[<<, n]`
 
-```
-$ma5[<<, 1]    // previous value of ma5 state
-```
+The `$state[<<, n]` postfix history selector is not an active milestone syntax.
+Future history access must re-enter with a revised selector or state-topology
+fixture instead of reusing the old M6 spelling.
 
-Only valid on state references (`$`-prefixed variables).
+Historical examples remain provenance only in archived milestone docs.
 
 ---
 
@@ -688,7 +693,7 @@ If a resource schema mismatch is detected (e.g., accessing a non-existent databa
 
 ### 13.2 Algebraic Propagation for Data Errors
 
-Missing data within a stream becomes `@`, which propagates through all downstream computations. The pipeline naturally "goes silent" rather than producing incorrect results.
+Missing data within a stream becomes runtime absence, displayed as `@` in diagnostics and terminal formatting. It propagates through supported downstream computations; user code should not manufacture this state with a standalone `@` literal.
 
 ### 13.3 Diagnostic Tracing
 
@@ -703,10 +708,10 @@ The `??` operator extracts the diagnostic context from a tainted `@`.
 ### 13.4 Guard-based Recovery
 
 ```
-safe_price = price | $last_valid_price    // fallback if price is @
+safe_price = price | $last_valid_price    // fallback if price carries runtime absence
 ```
 
-The `|` operator provides a fallback value when the left side is `@`.
+The `|` operator provides a fallback value when the left side carries runtime absence.
 
 ---
 
@@ -756,7 +761,7 @@ The current C++ compiler implementation already has a rich token system, parser,
 
 1. **`>>` ambiguity resolution:** The parser must distinguish between pipe (`source >> consumer`), continue (`>>` as standalone statement), and stride selector (`[>>, 2]`). The current implementation already handles `>>` as `Iterate` — extending this to multi-meaning requires careful lookahead logic.
 
-2. **`@` overload risk:** `@` serves as undefined value, resource prefix, and state container prefix. Consider whether the parser can always unambiguously resolve these based on context (`@` alone = undefined, `@ident{...}` = resource, `@[...]` = state).
+2. **`@` overload risk:** `@` remains overloaded as a resource prefix, state prefix, standard-stream prefix, and runtime absence marker. Source-level bare `@` has been retired from active syntax to reduce ambiguity.
 
 3. **Scan vs. Window unification:** Both `@[n](var = expr)` (window) and `@[var = init](expr)` (scan/accumulator) use the `@[...]` syntax. The compiler must distinguish them by whether the bracket contains a number (window size) or an assignment (accumulator init). This is parseable but should be clearly specified.
 

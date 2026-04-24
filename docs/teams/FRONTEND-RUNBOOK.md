@@ -38,6 +38,9 @@ Build and test targets:
 8. When primitive token/type table fixes close a ledger item, sync [../rollups/NEXT-STAGE-GAP-LEDGER.md](../rollups/NEXT-STAGE-GAP-LEDGER.md) and the checkpoint tree with the focused regression evidence.
 9. When a symbolic token gains both prefix and infix roles, keep lexer, legacy parser, nightly parser, and token-gate tests aligned in one change.
 10. When terminal-handle or standard-stream symbolic syntax changes, keep the parser target helpers, nightly expression route, symbolic built-in declarations, and CLI smoke examples aligned with the design SSOT.
+11. When function type annotations accept generic/container spelling such as `list[T]` or `dict[K,V]`, route probes, legacy parsing, and nightly parsing must all reuse the unified type parser so generic return types do not silently fall back to legacy block parsing.
+12. Treat contiguous `^...` as one break statement whose depth is always 1. The parser may consume any run length for compatibility, but count must not alter the AST or routing outcome.
+13. If a parser failure exposes an active milestone fixture using retired syntax, clean the fixture out of active tests and document the cutover before widening parser compatibility. Do not make obsolete grammar green just to satisfy an old milestone.
 
 ## Change Classes
 

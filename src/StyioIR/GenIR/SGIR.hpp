@@ -643,7 +643,8 @@ public:
   unsigned depth = 1;
 
   explicit SGBreak(unsigned d) :
-      depth(d) {
+      depth(1) {
+    (void)d;
   }
 
   static SGBreak* Create(unsigned d = 1) {

@@ -654,15 +654,18 @@ When showing Styio code examples, use the canonical "Golden Cross" strategy as t
     @[5 ](ma5  = get_ma(p, 5 ))
     @[20](ma20 = get_ma(p, 20))
 
-    is_golden = ($ma5 > $ma20) && ($ma5[<<, 1] <= $ma20[<<, 1])
+    // History comparison waits for the revised selector; old $state[<<, n] is retired.
+    is_golden = $ma5 > $ma20
 
     # order_logic := (price) => { >_ ("Buy at: " + price) }
 
-    (is_golden) ~> order_logic(p) | @
+    ?(is_golden) => {
+        order_logic(p)
+    }
 }
 ```
 
-This is the "constitution" — any syntax change that breaks this example must be explicitly justified.
+This is the "constitution" — any syntax change that breaks this example must be explicitly justified. The 2026-04-24 revision removed the old `$state[<<, n]` history selector and source-level bare `@` no-op arm from this active example.
 
 ### 12.4 Development history, milestones, and test documentation
 
@@ -807,7 +810,7 @@ Features from the design documents and their current implementation state:
 | Shadow references (`$var`) | §8.3 | — | — | — | — | — | — | **Not Started** |
 | History probe (`[<<, n]`) | §8.4 | — | — | — | — | — | — | **Not Started** |
 | Pulse Frame Lock | §8.5 | — | — | — | — | — | — | **Not Started** |
-| Break (`^^^^`) | §5.5 | — | — | — | — | — | — | **Not Started** |
+| Break (`^...`) | §5.5 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | **Working** |
 | Continue (`>>>`) | §5.6 | — | — | — | — | — | — | **Not Started** |
 | Stream Zip (`&`) | §9.1 | — | — | — | — | — | — | **Not Started** |
 | Snapshot Pull (`<< @res`) | §9.2 | — | — | — | — | — | — | **Not Started** |

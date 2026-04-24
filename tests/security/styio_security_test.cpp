@@ -922,6 +922,24 @@ TEST(StyioSecurityNightlyParserStmt, ParsesStandardStreamSymbolicDefinitions) {
     parse_typecheck_and_lower_program_engine_latest(src, StyioParserEngine::Nightly));
 }
 
+TEST(StyioSecurityNightlyParserStmt, ParsesGenericFunctionTypeAnnotations) {
+  const std::string src =
+    "# first : i64 := (xs: list[i64]) => xs[0]\n"
+    "# lookup : i64 := (table: dict[string, i64], key: string) => table[key]\n"
+    "# identity_list : list[i64] := (xs: list[i64]) => {\n"
+    "  n = xs.length\n"
+    "  <| xs\n"
+    "}\n";
+
+  const std::string repr = parse_program_to_repr_latest(src, true);
+  EXPECT_NE(repr.find("list[i64]"), std::string::npos);
+  EXPECT_NE(repr.find("dict[string,i64]"), std::string::npos);
+
+  const std::string engine_repr =
+    parse_program_engine_to_repr_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(engine_repr.find("styio.ast.attr { xs.length }"), std::string::npos);
+}
+
 TEST(StyioSecurityNightlyParserStmt, MatchesLegacyOnFlexBindSubsetSamples) {
   const std::vector<std::string> samples = {
     "x = 1 + 2\n>_(x)\n",
@@ -1414,6 +1432,42 @@ TEST(StyioSecurityNightlyCodegen, PreservesDeclaredFunctionParamTypesAcrossStrin
   EXPECT_NE(llvm_ir.find("define i64 @double_it(i64 %x)"), std::string::npos);
   EXPECT_NE(llvm_ir.find("call i64 @double_it(i64"), std::string::npos);
   EXPECT_EQ(llvm_ir.find("define i64 @double_it(ptr %x)"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlyCodegen, LowersGenericListFunctionParamTypes) {
+  const std::string src =
+    "# first : i64 := (xs: list[i64]) => xs[0]\n"
+    ">_(first([1, 2, 3]))\n";
+  const std::string llvm_ir =
+    compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(llvm_ir.find("define i64 @first(i64 %xs)"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("call i64 @styio_list_get"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("call i64 @first(i64"), std::string::npos);
+}
+
+TEST(StyioSecurityNightlyCodegen, NestedLoopDirectReturnExitsEnclosingFunction) {
+  const std::string src =
+    "# two_sum : list[i64] := (nums: list[i64], target: i64) => {\n"
+    "  n = nums.length - 1\n"
+    "  [0..n] >> #(i) => {\n"
+    "    [i+1..n] >> #(j) => {\n"
+    "      ?(nums[i] + nums[j] == target) => {\n"
+    "        <| [i, j]\n"
+    "      }\n"
+    "    }\n"
+    "  }\n"
+    "  <| [-1, -1]\n"
+    "}\n"
+    "ans = two_sum([2, 7, 11, 15], 9)\n"
+    "ans[0] -> [>_]\n"
+    "ans[1] -> [>_]\n";
+  const std::string llvm_ir =
+    compile_program_to_llvm_ir_engine_latest(src, StyioParserEngine::Nightly);
+  EXPECT_NE(llvm_ir.find("define i64 @two_sum(i64 %nums, i64 %target)"), std::string::npos);
+  EXPECT_NE(llvm_ir.find("call i64 @styio_list_get"), std::string::npos);
+  const auto nested_then = llvm_ir.find("styif_then");
+  ASSERT_NE(nested_then, std::string::npos);
+  EXPECT_NE(llvm_ir.find("ret i64", nested_then), std::string::npos);
 }
 
 TEST(StyioSecurityNightlyRuntime, ListHandlesAreCleanedUpAfterExecution) {

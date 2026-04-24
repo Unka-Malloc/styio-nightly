@@ -284,6 +284,9 @@ consume_hash_return_type_latest(TokenProbeLatest& probe) {
     return false;
   }
   probe.advance();
+  if (probe.type() == StyioTokenType::TOK_LBOXBRAC) {
+    return consume_balanced_group_latest(probe, StyioTokenType::TOK_LBOXBRAC, StyioTokenType::TOK_RBOXBRAC);
+  }
   return true;
 }
 
@@ -1545,12 +1548,10 @@ parse_return_value_nightly(StyioContext& context) {
 
 BreakAST*
 parse_break_nightly(StyioContext& context) {
-  unsigned depth = 0;
   while (context.check(StyioTokenType::TOK_HAT)) {
-    depth += 1;
     context.move_forward(1, "new_stmt:break");
   }
-  return BreakAST::Create(depth > 0 ? depth : 1u);
+  return BreakAST::Create(1u);
 }
 
 ContinueAST*
@@ -1608,25 +1609,7 @@ parse_block_with_forward_subset_nightly(StyioContext& context) {
 
 TypeAST*
 parse_hash_simple_type_nightly(StyioContext& context) {
-  context.skip();
-  if (context.cur_tok_type() == StyioTokenType::BOUNDED_BUFFER_OPEN) {
-    context.move_forward(1, "new_stmt:hash_type_bounded_open");
-    context.skip();
-    if (context.cur_tok_type() != StyioTokenType::INTEGER) {
-      throw StyioSyntaxError("expected integer capacity in [|n|] return type");
-    }
-    const std::string cap = context.cur_tok()->original;
-    context.move_forward(1, "new_stmt:hash_type_bounded_cap");
-    context.skip();
-    context.try_match_panic(StyioTokenType::BOUNDED_BUFFER_CLOSE);
-    return TypeAST::CreateBoundedRingBuffer(cap);
-  }
-  if (context.cur_tok_type() != StyioTokenType::NAME) {
-    throw StyioSyntaxError("expected simple return type name in nightly parser subset");
-  }
-  const std::string type_name = context.cur_tok()->original;
-  context.move_forward(1, "new_stmt:hash_type_name");
-  return TypeAST::Create(type_name);
+  return parse_styio_type(context);
 }
 
 std::variant<TypeAST*, TypeTupleAST*>

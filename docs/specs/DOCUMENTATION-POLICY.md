@@ -88,6 +88,7 @@ Every `docs/**/*.md` file must expose machine-readable update metadata near the 
    - 指向新的冻结文档路径。
 5. ADR、history 和 archive 默认都是 **provenance layer**，不是第二天继续开发的前置输入。当前仍有效的设计意图、维护规则、测试门禁、团队边界和交接方式，必须提升到活跃文档。
 6. 当实现接受的兼容语法多于冻结示例时，SSOT 必须说明“为什么该语法仍有效”，并至少有一条自动化测试冻结该兼容行为。
+7. 当语法修订判定旧写法作废时，旧 fixture 不进入“已知失败”列表，也不留在活动 `tests/milestones/` 中。维护者必须删除对应 `.styio` 与 golden，移除 `TEST-CATALOG` 活动行，在设计/里程碑文档写清修订注释，并重新跑受影响 label 与 `ctest -L milestone`。
 
 ### 0.6 文档目录职责
 
@@ -252,7 +253,7 @@ Manifest exports also include text-volume statistics for the selected document s
 
 CI 或本地可逐步引入：
 
-1. `ctest -L milestone` 全绿（或允许已知失败列表，但须在 `TEST-CATALOG` 标注）。
+1. `ctest -L milestone` 全绿。只有仍代表当前语法但暂未实现的 case 才能进入已知失败列表，并且必须在 `TEST-CATALOG` 标注；作废旧语法不得作为已知失败保留。
 2. `python3 scripts/docs-index.py --check` 必须通过，确保 collection-directory `INDEX.md` 未过期。
 3. `python3 scripts/docs-lifecycle.py validate` 必须通过，确保 rollup/archive manifest、ledger、keep-window 与路径映射一致。
 4. `python3 scripts/docs-audit.py` 必须通过，确保 `Purpose` / `Last updated` / 命名 / 链接 / 目录入口都符合规则，并串联 lifecycle gate。
