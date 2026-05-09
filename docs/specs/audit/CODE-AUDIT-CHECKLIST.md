@@ -8,7 +8,7 @@
 
 Every agent performing code review, implementation review, defect triage, or closure verification must apply this checklist. If a finding violates one of the seven design principles below, record the principle number in the defect note or review finding. Every closure decision must also record the test evidence used, the data lifecycle evidence for touched structures or resources, and whether the delivery gate is strict enough to protect software quality.
 
-For data and resource lifecycle claims, use the centralized `audit` framework as the auditable source of truth: `modules/default` plus `for-styio`.
+For data and resource lifecycle statements, use the centralized `audit` framework as the auditable source of truth: `modules/default` plus `for-styio`.
 
 ## 1. Check The Seven Design Principles First
 
@@ -22,7 +22,7 @@ Audit questions:
 
 1. Does the design avoid unnecessary work on hot paths, request loops, parsing, compilation, execution, and UI update paths?
 2. Does it make the recommended user path also the efficient path?
-3. Are performance claims backed by tests, benchmark evidence, or a documented gate?
+3. Are performance statements backed by tests, benchmark evidence, or a documented gate?
 4. If the change sacrifices performance for convenience, is that tradeoff explicitly justified and bounded?
 
 Violation examples:
@@ -100,20 +100,20 @@ Violation examples:
 2. Extracting tar archives without validating entries.
 3. Reading HTTP responses or request bodies without size caps.
 
-### 6. Evidence Must Match The Claim
+### 6. Evidence Must Match The Statement
 
-No audit conclusion is complete unless tests, gates, diagnostics, and docs prove the exact claim being made.
+No audit conclusion is complete unless tests, gates, diagnostics, and docs prove the exact statement being made.
 
 Audit questions:
 
-1. Does a green test actually cover the behavior being claimed?
+1. Does a green test actually cover the behavior being stated?
 2. Are positive, negative, malformed, timeout, security, and compatibility edges covered when relevant?
 3. Is a skipped, optional, or environment-gated test clearly marked as insufficient for full closure?
 4. Are docs, runbooks, indexes, and gates updated with the code change?
 
 Violation examples:
 
-1. Claiming product closure while the product workflow gate is skipped by default.
+1. Stating product closure while the product workflow gate is skipped by default.
 2. Treating a happy-path contract test as proof of security hardening.
 3. Updating code without updating the owning runbook or docs index.
 
@@ -158,7 +158,7 @@ Audit questions:
 Violation examples:
 
 1. Closing a parser defect after only a happy-path CLI smoke test.
-2. Claiming security coverage without testing unauthorized, malformed, and oversized inputs.
+2. Stating security coverage without testing unauthorized, malformed, and oversized inputs.
 3. Accepting a UI state change without testing restore, empty workspace, failed adapter, and repeated action paths.
 4. Treating a green build as coverage when no test observes the changed behavior.
 
@@ -205,7 +205,7 @@ Gate strictness means the gate blocks unsafe delivery states:
 1. Required tests, contract checks, docs checks, hygiene checks, security checks, and packaging checks are run by default for the relevant delivery path.
 2. Failures propagate as non-zero exits with actionable diagnostics.
 3. Optional or environment-dependent checks clearly report reduced confidence and cannot be used as full closure evidence.
-4. Gates validate quality claims directly instead of checking unrelated success conditions.
+4. Gates validate quality statements directly instead of checking unrelated success conditions.
 5. Gate bypasses, allowlists, temporary skips, and legacy bridges have owners, scope limits, and explicit exit criteria.
 
 Audit questions:
@@ -215,7 +215,7 @@ Audit questions:
 3. Does the gate exercise the durable contract rather than a local implementation detail that can drift?
 4. Are gate thresholds, required checks, and skip rules strict enough for product quality even if that causes the current branch to fail?
 5. If the current code cannot pass the appropriate gate, is that recorded as a defect with closure evidence rather than hidden by relaxing the gate?
-6. Are docs and runbooks updated so future agents know which gate proves each quality claim?
+6. Are docs and runbooks updated so future agents know which gate proves each quality statement?
 
 Violation examples:
 
