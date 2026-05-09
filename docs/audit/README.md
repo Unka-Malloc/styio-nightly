@@ -1,8 +1,8 @@
 # Audit
 
-**Purpose:** Define the repository-local audit queue for security, correctness, and design defects discovered before they are converted into normal tracked work.
+**Purpose:** Define the repository-local audit queue for security, correctness, and design defects discovered before they are converted into normal tracked work; closed audit reports are not retained as long-form current-tree documents.
 
-**Last updated:** 2026-04-22
+**Last updated:** 2026-05-09
 
 ## Defect Queue
 
@@ -17,4 +17,4 @@ External `audit` runs outside this repository and enforces this rule when an aud
 3. Closed records must include non-empty `**Closure evidence:** ...`.
 4. Any open, malformed, or non-markdown record blocks the external audit result.
 
-Move durable findings into tracked planning, issue, test, or implementation work once the record is ready for long-term ownership.
+Move durable findings into tracked planning, issue, test, implementation work, or a compressed rollup once the record is ready for long-term ownership. Use Git history for exact old audit prose.
