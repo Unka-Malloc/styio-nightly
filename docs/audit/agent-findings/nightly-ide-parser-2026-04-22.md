@@ -1,0 +1,35 @@
+# Nightly IDE / Parser Audit Shard
+
+**Purpose:** Record IDE, LSP, parser, cache, and protocol-boundary findings from the parallel external audit pass.
+
+**Last updated:** 2026-04-22
+
+**Date:** 2026-04-22
+**Repo:** `styio-nightly`
+**Scope:** IDE/LSP/parser lifecycle, cache and index invalidation, protocol input boundaries, and gate/test coverage.
+
+## Findings
+
+| ID | Area | Status | Evidence | Notes |
+|----|------|--------|----------|-------|
+| NIP-001 | IDE lifecycle | Resolved | `src/StyioIDE/VFS.cpp:161-177` | Closed-file snapshots now re-read disk contents on each access, so background indexing no longer keeps stale in-memory text after a file changes on disk. |
+| NIP-002 | Cache / index | Resolved | `src/StyioIDE/SemDB.cpp:636-653` | Workspace indexing now persists an empty symbol set as well, so a later session clears deleted symbols instead of resurrecting them from an old `symbols.json`. |
+| NIP-003 | LSP protocol boundary | Resolved | `src/StyioLSP/Server.cpp:13-22`, `src/StyioLSP/Server.cpp:247-322` | LSP frame parsing now validates `Content-Length`, caps frame size, discards oversized frames safely, and ignores oversized string request IDs without throwing. |
+| NIP-004 | Workspace scan / gate | Open | `src/StyioIDE/Project.cpp:10-40` | Recursive workspace scanning still has no explicit error-code path, and cache-root identity still relies on `std::hash<std::string>`. That keeps traversal failures and cache collisions as residual risk. |
+
+## Regression Coverage Added
+
+- `StyioWorkspaceIndex.PersistentIndexClearsDeletedSymbolsOnNewSession`
+- `StyioWorkspaceIndex.ClosedFileRefreshesFromDiskBeforeBackgroundIndexing`
+- `StyioLspServer.SkipsMalformedFramesAndHandlesLargeStringIds`
+
+## Validation
+
+- `cmake --build /home/unka/styio-nightly/build-codex --target styio_ide_test styio_lspd -j8`
+- `ctest --test-dir /home/unka/styio-nightly/build-codex -R 'StyioWorkspaceIndex\\.(PersistentIndexClearsDeletedSymbolsOnNewSession|ClosedFileRefreshesFromDiskBeforeBackgroundIndexing)|StyioLspServer\\.(HandlesInitializeOpenAndCompletion|SkipsMalformedFramesAndHandlesLargeStringIds|RunDrainsRuntimeDiagnostics)' --output-on-failure`
+- `ctest --test-dir /home/unka/styio-nightly/build-codex -R 'StyioLspRuntime\\.(RunAdvancesBackgroundWorkAsRequestDrivenFallback|BackgroundIndexYieldsToForegroundRequests|IdleSliceDrainsSemanticBeforeBackgroundWork|CancellationPropagatesThroughSemanticQueries|DebouncesSemanticDiagnostics)' --output-on-failure`
+
+## Residual Risk
+
+- `Project::scan_workspace()` still needs explicit traversal error handling if the workspace contains unreadable directories or broken paths.
+- The parser-shadow scripts were reviewed as part of the audit surface, but no parser-shadow-specific code path needed a local fix in this pass.
