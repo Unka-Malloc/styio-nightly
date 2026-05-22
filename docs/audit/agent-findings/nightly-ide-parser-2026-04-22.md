@@ -8,6 +8,8 @@
 **Repo:** `styio-nightly`
 **Scope:** IDE/LSP/parser lifecycle, cache and index invalidation, protocol input boundaries, and gate/test coverage.
 
+> **MIGRATION-NEEDED: M-AUDIT-01** (docs/rollups/MIGRATION-LEDGER.md). This dated audit shard is older than the audit-retention window per `docs/audit/README.md`. Verify each finding is closed against `docs/adr/IMPLEMENTED-DECISIONS.md` / `docs/rollups/IM-D*` inventories, archive through `docs/archive/ARCHIVE-MANIFEST.json`, and remove this file from the current tree.
+
 ## Findings
 
 | ID | Area | Status | Evidence | Notes |
