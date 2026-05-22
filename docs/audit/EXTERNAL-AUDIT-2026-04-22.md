@@ -4,6 +4,9 @@
 
 **Last updated:** 2026-04-22
 
+> **MIGRATION-NEEDED: M-AUDIT-01** (docs/rollups/MIGRATION-LEDGER.md). This dated audit report is older than the audit-retention window per `docs/audit/README.md`. Findings have been absorbed into `docs/adr/IMPLEMENTED-DECISIONS.md` and the `docs/rollups/IM-D*` inventories; verify each finding closure, archive through `docs/archive/ARCHIVE-MANIFEST.json`, and remove this file from the current tree.
+
+
 ## Scope
 
 This audit checked the seven design principles in `docs/specs/audit/CODE-AUDIT-CHECKLIST.md`, test coverage gaps, resource and state-machine lifecycle handling, delivery-gate strictness, and the security, performance, and correctness risks called out by the current code.

@@ -4,9 +4,11 @@
 
 **Last updated:** 2026-04-22
 
-**Scope:** `src/StyioAnalyzer`, `src/StyioCodeGen`, and focused regressions under `tests/security/`.
+**Scope:** `src/StyioAnalyzer`, `src/StyioCodeGen`, and focused regressions under `tests/security/`. Note: `src/StyioAnalyzer/` was retired on 2026-05-22; the surviving sema/lowering code lives under `src/StyioSema/` and `src/StyioLowering/`.
 
 **Status:** Partially remediated during this pass.
+
+> **MIGRATION-NEEDED: M-AUDIT-01** (docs/rollups/MIGRATION-LEDGER.md). This dated audit shard is older than the audit-retention window per `docs/audit/README.md`. Verify each finding is closed against `docs/adr/IMPLEMENTED-DECISIONS.md` / `docs/rollups/IM-D*` inventories, archive through `docs/archive/ARCHIVE-MANIFEST.json`, and remove this file from the current tree.
 
 ## Closed During This Pass
 

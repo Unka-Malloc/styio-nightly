@@ -8,6 +8,8 @@
 
 **Status:** Partially remediated during this pass
 
+> **MIGRATION-NEEDED: M-AUDIT-01** (docs/rollups/MIGRATION-LEDGER.md). This dated audit shard is older than the audit-retention window per `docs/audit/README.md`. Verify each finding is closed against `docs/adr/IMPLEMENTED-DECISIONS.md` / `docs/rollups/IM-D*` inventories, archive through `docs/archive/ARCHIVE-MANIFEST.json`, and remove this file from the current tree.
+
 ## Closed During This Pass
 
 - `SizeOfAST` was a real silent-fallback path. It now owns a writable type slot, type-infers to `i64`, and lowers to `SGListLen` / `SGDictLen` instead of `SGConstInt(0)`.
