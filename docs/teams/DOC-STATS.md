@@ -2,7 +2,7 @@
 
 **Purpose:** Record the current size of each `docs/teams/` runbook using the repository-local `scripts/docs-audit.py` word-count and character-count rules; this is a maintenance snapshot, not a quality target.
 
-**Last updated:** 2026-09-05
+**Last updated:** 2026-09-06
 
 ## Counting Method
 
@@ -34,8 +34,8 @@ python3 scripts/docs-audit.py --manifest valid --format json --output /tmp/styio
 | IDE / LSP | [IDE-LSP-RUNBOOK.md](./IDE-LSP-RUNBOOK.md) | 1,816 | 8,287 |
 | Performance / Stability | [PERF-STABILITY-RUNBOOK.md](./PERF-STABILITY-RUNBOOK.md) | 3,500 | 16,068 |
 | Sema / IR | [SEMA-IR-RUNBOOK.md](./SEMA-IR-RUNBOOK.md) | 10,133 | 49,758 |
-| Test Quality | [TEST-QUALITY-RUNBOOK.md](./TEST-QUALITY-RUNBOOK.md) | 6,286 | 30,905 |
-| **Total** | Team runbooks only | **44,138** | **207,966** |
+| Test Quality | [TEST-QUALITY-RUNBOOK.md](./TEST-QUALITY-RUNBOOK.md) | 6,411 | 31,441 |
+| **Total** | Team runbooks only | **44,263** | **208,502** |
 
 ## Support File Size
 
