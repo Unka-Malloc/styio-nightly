@@ -1,0 +1,53 @@
+name: upstream-sync-inventory
+
+on:
+  push:
+    branches:
+      - agent/upstream-sync-audit-2026-09-28
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out downstream history without persisted credentials
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Collect pinned history and source evidence
+        shell: bash
+        env:
+          UPSTREAM_BASE: 19f4a8bb2831259f20b492eca4dc4dc0e9d385a4
+          DOWNSTREAM_HEAD: 47d30395031c4b71798266ccc38f81e38e59fb35
+        run: |
+          set -euo pipefail
+          git remote add audit-upstream https://github.com/SymPolicy/Styio.git
+          git fetch --no-tags audit-upstream release
+          test "$(git rev-parse FETCH_HEAD)" = "$UPSTREAM_BASE"
+          git cat-file -e "$DOWNSTREAM_HEAD^{commit}"
+          mkdir -p audit-evidence
+          git update-ref refs/audit/upstream-base "$UPSTREAM_BASE"
+          git update-ref refs/audit/downstream-head "$DOWNSTREAM_HEAD"
+          git bundle create audit-evidence/styio-promotion.bundle refs/audit/upstream-base refs/audit/downstream-head
+          git rev-list --left-right --count "$UPSTREAM_BASE...$DOWNSTREAM_HEAD" > audit-evidence/divergence.txt
+          git log --reverse --topo-order --format='%H %P %s' "$UPSTREAM_BASE..$DOWNSTREAM_HEAD" > audit-evidence/downstream-commits.txt
+          git log --reverse --format='%H %P %s' "$DOWNSTREAM_HEAD..$UPSTREAM_BASE" > audit-evidence/upstream-commits.txt
+          git log --first-parent --reverse --format='%H %P %s' "$UPSTREAM_BASE..$DOWNSTREAM_HEAD" > audit-evidence/first-parent.txt
+          git diff --stat "$UPSTREAM_BASE" "$DOWNSTREAM_HEAD" > audit-evidence/diff-stat.txt
+          git diff --name-status "$UPSTREAM_BASE" "$DOWNSTREAM_HEAD" > audit-evidence/changed-files.txt
+          git diff "$(git merge-base "$UPSTREAM_BASE" "$DOWNSTREAM_HEAD")" "$UPSTREAM_BASE" > audit-evidence/upstream-only.patch
+          printf 'upstream_base=%s\ndownstream_head=%s\nworkflow_sha=%s\n' "$UPSTREAM_BASE" "$DOWNSTREAM_HEAD" "$GITHUB_SHA" > audit-evidence/revisions.txt
+          sha256sum audit-evidence/* > audit-evidence/SHA256SUMS
+          cat audit-evidence/divergence.txt audit-evidence/upstream-commits.txt
+          cat audit-evidence/first-parent.txt
+      - name: Upload immutable promotion evidence
+        uses: actions/upload-artifact@v6
+        with:
+          name: styio-upstream-promotion-inventory
+          path: audit-evidence/
+          retention-days: 7
+          if-no-files-found: error
