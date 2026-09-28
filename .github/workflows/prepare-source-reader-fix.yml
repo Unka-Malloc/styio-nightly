@@ -1,0 +1,47 @@
+name: prepare-source-reader-fix
+
+on:
+  push:
+    branches: [agent/prepare-reviewed-upstream-batches-2026-09-28]
+    paths:
+      - .github/workflows/prepare-source-reader-fix.yml
+      - .github/promotion/downstream-reader-fix.patch
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.repository == 'Unka-Malloc/styio-nightly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Apply the reviewed repair to the frozen downstream base
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=35aa90c278e4deb1243d06c56e7d3862a7cc9716
+          branch=agent/fix-syntax-source-io-2026-09-28
+          cp .github/promotion/downstream-reader-fix.patch "$RUNNER_TEMP/reader-fix.patch"
+          test "$(git ls-remote origin "refs/heads/$branch" | cut -f1)" = "$base"
+          git checkout -b "$branch" "$base"
+          test "$(git rev-parse HEAD^{tree})" = 7cdbd563660da111d0e86690cb29ee71c7e3192c
+          git apply --index "$RUNNER_TEMP/reader-fix.patch"
+          git diff --cached --check
+          test "$(git write-tree)" = b5a2b20e104ec44b469a89b4d5d6098d57284ae1
+          python3 scripts/docs-audit.py
+          python3 scripts/team-docs-gate.py --base "$base"
+          python3 scripts/workflow-scheduler.py check
+          python3 scripts/repo-hygiene-gate.py --mode worktree
+          python3 scripts/local-info-leak-gate.py --mode worktree
+          python3 -m py_compile tests/services_source_io_test.py
+          git config user.name Unka-Malloc
+          git config user.email 33834801+Unka-Malloc@users.noreply.github.com
+          git commit -m 'fix(services): reject failed syntax source reads and add CLI regressions'
+          git log -1 --format='candidate=%H tree=%T'
+          # Only source, test and runbook files change on this pre-created task branch.
+          test -z "$(git diff --name-only "$base" HEAD -- .github/workflows)"
+          git push origin "HEAD:refs/heads/$branch"
