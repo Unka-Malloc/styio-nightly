@@ -1,0 +1,43 @@
+name: prepare-service-envelope-fix
+
+on:
+  push:
+    branches: [agent/prepare-reviewed-upstream-batches-2026-09-28]
+    paths:
+      - .github/workflows/prepare-service-envelope-fix.yml
+      - .github/promotion/ide-envelope-repair.patch
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.repository == 'Unka-Malloc/styio-nightly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Preserve strict assertions and publish a fast-forward source repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=6699e42071d73a66e8eb9927fac37bda122e0d57
+          branch=upstream/2026-09-28-01-services
+          cp .github/promotion/ide-envelope-repair.patch "$RUNNER_TEMP/envelope.patch"
+          test "$(git ls-remote origin "refs/heads/$branch" | cut -f1)" = "$base"
+          git checkout -b "$branch" "$base"
+          git apply --index "$RUNNER_TEMP/envelope.patch"
+          git diff --cached --check
+          test "$(git write-tree)" = b1add14ad8cc58c01095c3ab21612eb93cf23389
+          git config user.name Unka-Malloc
+          git config user.email 33834801+Unka-Malloc@users.noreply.github.com
+          git commit -m 'test(services): require complete member-access syntax outlines'
+          python3 scripts/team-docs-gate.py --base afee0a98c180d3c129d0e86be283156ef8439a74
+          python3 scripts/team-docs-gate.py --base "$base"
+          python3 scripts/docs-audit.py
+          python3 scripts/workflow-scheduler.py check
+          test -z "$(git diff --name-only "$base" HEAD -- .github/workflows)"
+          git log -1 --format='candidate=%H tree=%T'
+          git push origin "HEAD:refs/heads/$branch"
