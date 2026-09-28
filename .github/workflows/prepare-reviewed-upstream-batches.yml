@@ -1,0 +1,57 @@
+name: prepare-reviewed-upstream-batches
+
+on:
+  push:
+    branches: [agent/prepare-reviewed-upstream-batches-2026-09-28]
+    paths:
+      - .github/workflows/prepare-reviewed-upstream-batches.yml
+      - .github/promotion/prepare_batches.py
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    if: github.repository == 'Unka-Malloc/styio-nightly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13.5'
+      - name: Prepare exact locally audited trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          baseline=9d211fcd2dd799183d3e30a32dbc05c27acafb00
+          actual=$(git ls-remote https://github.com/SymPolicy/Styio.git refs/heads/nightly | cut -f1)
+          test "$actual" = "$baseline"
+          git cat-file -e "$baseline^{commit}"
+          mkdir -p "$RUNNER_TEMP/promotion-evidence"
+          cp .github/promotion/prepare_batches.py "$RUNNER_TEMP/prepare_batches.py"
+          EVIDENCE_OUT="$RUNNER_TEMP/promotion-evidence/batches.json" python3 "$RUNNER_TEMP/prepare_batches.py" 2>&1 | tee "$RUNNER_TEMP/promotion-evidence/preparation.log"
+          git diff --stat "$baseline" upstream/2026-09-28-00-ci-foundation > "$RUNNER_TEMP/promotion-evidence/00-ci-foundation.stat"
+          git diff --stat upstream/2026-09-28-00-ci-foundation upstream/2026-09-28-01-services > "$RUNNER_TEMP/promotion-evidence/01-services.stat"
+          git bundle create "$RUNNER_TEMP/promotion-evidence/reviewed-batches.bundle" upstream/2026-09-28-00-ci-foundation upstream/2026-09-28-01-services
+      - name: Publish new downstream branches without force
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = Unka-Malloc/styio-nightly
+          for branch in upstream/2026-09-28-00-ci-foundation upstream/2026-09-28-01-services; do
+            test -z "$(git ls-remote --heads origin "refs/heads/$branch")"
+          done
+          git push --atomic origin \
+            refs/heads/upstream/2026-09-28-00-ci-foundation:refs/heads/upstream/2026-09-28-00-ci-foundation \
+            refs/heads/upstream/2026-09-28-01-services:refs/heads/upstream/2026-09-28-01-services
+      - name: Upload preparation evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: reviewed-upstream-batches
+          path: ${{ runner.temp }}/promotion-evidence/
+          retention-days: 14
+          if-no-files-found: error
