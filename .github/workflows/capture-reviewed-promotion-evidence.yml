@@ -1,0 +1,69 @@
+name: capture-reviewed-promotion-evidence
+
+on:
+  push:
+    branches: [agent/prepare-reviewed-upstream-batches-2026-09-28]
+    paths: [.github/workflows/capture-reviewed-promotion-evidence.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    if: github.repository == 'Unka-Malloc/styio-nightly'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          path: styio
+      - uses: actions/checkout@v5
+        with:
+          repository: SymPolicy/Pafio
+          ref: 813dd24ed1b7a527c928333e22aac5d5fde129f4
+          persist-credentials: false
+          path: siblings/styio-pafio
+      - uses: actions/checkout@v5
+        with:
+          repository: Unka-Malloc/vityo-nightly
+          ref: 6adfa4c2b2d11ba01a74f321cfebb6323ebac6ea
+          persist-credentials: false
+          path: siblings/styio-view
+      - name: Archive immutable candidates without modifying remote refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/siblings/styio-pafio evidence/siblings/styio-view
+          cd styio
+          while read -r name sha; do
+            git cat-file -e "$sha^{commit}"
+            git update-ref "refs/audit/$name" "$sha"
+            printf '%s %s %s\n' "$name" "$sha" "$(git rev-parse "$sha^{tree}")" >> ../evidence/candidate-trees.txt
+          done <<'PINS'
+          upstream-base 9d211fcd2dd799183d3e30a32dbc05c27acafb00
+          ci-foundation afee0a98c180d3c129d0e86be283156ef8439a74
+          services 6699e42071d73a66e8eb9927fac37bda122e0d57
+          downstream-base 35aa90c278e4deb1243d06c56e7d3862a7cc9716
+          governance e093164da93ba1c86f90ebde34ce75cfa2663af4
+          downstream-reader b3380940ea4b19e3589ab65c08865a7d76904f08
+          PINS
+          git bundle create ../evidence/candidates.bundle refs/audit/upstream-base refs/audit/ci-foundation refs/audit/services refs/audit/downstream-base refs/audit/governance refs/audit/downstream-reader
+          git diff refs/audit/upstream-base refs/audit/ci-foundation > ../evidence/00-ci-foundation.patch
+          git diff refs/audit/ci-foundation refs/audit/services > ../evidence/01-services.patch
+          git diff refs/audit/downstream-base refs/audit/downstream-reader > ../evidence/downstream-reader.patch
+          cd ..
+          cp -R siblings/styio-pafio/docs evidence/siblings/styio-pafio/
+          cp -R siblings/styio-view/docs evidence/siblings/styio-view/
+          printf 'pafio=%s\nvityo=%s\n' "$(git -C siblings/styio-pafio rev-parse HEAD)" "$(git -C siblings/styio-view rev-parse HEAD)" > evidence/sibling-revisions.txt
+          printf 'captured_at=%s\nworkflow_sha=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$GITHUB_SHA" > evidence/capture.txt
+          printf '%s\n' 'Source snapshot only. Native test and merge status must be read from the referenced PRs and their current exact-head GitHub Actions runs.' > evidence/README.txt
+          (cd evidence && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          cat evidence/candidate-trees.txt evidence/sibling-revisions.txt
+      - uses: actions/upload-artifact@v6
+        with:
+          name: reviewed-promotion-candidates-and-contracts
+          path: evidence/
+          retention-days: 14
+          if-no-files-found: error
