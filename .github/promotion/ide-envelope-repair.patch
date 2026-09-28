@@ -1,0 +1,100 @@
+diff --git a/docs/teams/DOC-STATS.md b/docs/teams/DOC-STATS.md
+index 1cf78526..d80143ef 100644
+--- a/docs/teams/DOC-STATS.md
++++ b/docs/teams/DOC-STATS.md
+@@ -28,14 +28,14 @@ python3 scripts/docs-audit.py --manifest valid --format json --output /tmp/styio
+ | CLI / Nano | [CLI-NANO-RUNBOOK.md](./CLI-NANO-RUNBOOK.md) | 1,713 | 7,733 |
+ | Codegen / Runtime | [CODEGEN-RUNTIME-RUNBOOK.md](./CODEGEN-RUNTIME-RUNBOOK.md) | 1,797 | 8,208 |
+ | Coordination | [COORDINATION-RUNBOOK.md](./COORDINATION-RUNBOOK.md) | 2,005 | 7,538 |
+-| Docs / Ecosystem | [DOCS-ECOSYSTEM-RUNBOOK.md](./DOCS-ECOSYSTEM-RUNBOOK.md) | 3,289 | 15,197 |
++| Docs / Ecosystem | [DOCS-ECOSYSTEM-RUNBOOK.md](./DOCS-ECOSYSTEM-RUNBOOK.md) | 3,381 | 15,701 |
+ | Frontend | [FRONTEND-RUNBOOK.md](./FRONTEND-RUNBOOK.md) | 2,536 | 11,012 |
+ | Grammar | [GRAMMAR-RUNBOOK.md](./GRAMMAR-RUNBOOK.md) | 843 | 3,385 |
+-| IDE / LSP | [IDE-LSP-RUNBOOK.md](./IDE-LSP-RUNBOOK.md) | 1,108 | 4,753 |
++| IDE / LSP | [IDE-LSP-RUNBOOK.md](./IDE-LSP-RUNBOOK.md) | 1,208 | 5,258 |
+ | Performance / Stability | [PERF-STABILITY-RUNBOOK.md](./PERF-STABILITY-RUNBOOK.md) | 1,925 | 8,309 |
+ | Sema / IR | [SEMA-IR-RUNBOOK.md](./SEMA-IR-RUNBOOK.md) | 2,160 | 9,987 |
+-| Test Quality | [TEST-QUALITY-RUNBOOK.md](./TEST-QUALITY-RUNBOOK.md) | 2,588 | 12,049 |
+-| **Total** | Team runbooks only | **19,964** | **88,171** |
++| Test Quality | [TEST-QUALITY-RUNBOOK.md](./TEST-QUALITY-RUNBOOK.md) | 2,715 | 12,698 |
++| **Total** | Team runbooks only | **20,283** | **89,829** |
+ 
+ ## Support File Size
+ 
+diff --git a/docs/teams/DOCS-ECOSYSTEM-RUNBOOK.md b/docs/teams/DOCS-ECOSYSTEM-RUNBOOK.md
+index 6d16a145..650d641e 100644
+--- a/docs/teams/DOCS-ECOSYSTEM-RUNBOOK.md
++++ b/docs/teams/DOCS-ECOSYSTEM-RUNBOOK.md
+@@ -152,3 +152,12 @@ Record unfinished docs/ecosystem work with:
+ ### Staged upstream validation (2026-09-28)
+ 
+ Keep convergence fixtures and golden-standard commands aligned with tests/features. Preserve every convergence record and require its output oracle. Historical sibling pins document the existing v1 contract; they do not certify the latest sibling versions.
++
++### Public service contract integration (2026-09-28)
++
++The public service batch adds syntax-check before compile-plan in the CLI
++contract matrix and adds `services` to the source-build module graph. Keep
++all three corresponding gate assertions aligned without changing sibling
++requirements or upstream repository naming. Preserve the frozen v1 sibling
++contract checks; native IDE and syntax-check tests provide separate functional
++evidence. Their Debug latency exclusion must not be described as a pass.
+diff --git a/docs/teams/IDE-LSP-RUNBOOK.md b/docs/teams/IDE-LSP-RUNBOOK.md
+index ac84d546..cadef34a 100644
+--- a/docs/teams/IDE-LSP-RUNBOOK.md
++++ b/docs/teams/IDE-LSP-RUNBOOK.md
+@@ -85,3 +85,12 @@ Record unfinished IDE/LSP work with:
+ 3. Repro document text and cursor/range.
+ 4. Expected diagnostics/completion/hover/symbol behavior.
+ 5. Exact `ctest -L ide` failure or manual LSP message flow.
++
++### Upstream service validation (2026-09-28)
++
++The `member-and-types.styio` drift fixture contains two valid typed bindings.
++Require both `items` and `count` from the nightly outline, without recovery,
++and require exact equality with the IDE syntax outline. The old exception
++that tolerated dropping the member-access binding is retired. Token, statement,
++block, and deliberately malformed-input recovery assertions remain unchanged.
++The Debug suite does not certify the separate Release latency budgets.
+diff --git a/docs/teams/TEST-QUALITY-RUNBOOK.md b/docs/teams/TEST-QUALITY-RUNBOOK.md
+index 3376de84..cf6b5f07 100644
+--- a/docs/teams/TEST-QUALITY-RUNBOOK.md
++++ b/docs/teams/TEST-QUALITY-RUNBOOK.md
+@@ -134,3 +134,14 @@ and Vityo inputs use immutable historical revisions from their accessible
+ repositories so unrelated sibling changes do not alter a compiler promotion.
+ These pins establish the historical v1 baseline, not current sibling-version
+ compatibility; any pin update must rerun that same check.
++
++### Public service acceptance (2026-09-28)
++
++Build `styio_lspd` and run the IDE label alongside the existing security and
++pipeline suites. The syntax-check black-box suite validates strict JSON, input
++read failures, empty files, buffer boundaries, lexer/parser errors, invalid
++options or parser engines, and absence of runtime file/stdout side effects.
++For the valid typed-list/member fixture, require two declarations and no
++recovery rather than retaining the obsolete partial-outline exception.
++The separate Release-only latency test is reported as skipped in Debug; a
++green Debug suite is not evidence that Release latency budgets were measured.
+diff --git a/tests/ide/styio_ide_test.cpp b/tests/ide/styio_ide_test.cpp
+index 7081047e..080198d0 100644
+--- a/tests/ide/styio_ide_test.cpp
++++ b/tests/ide/styio_ide_test.cpp
+@@ -2160,7 +2160,7 @@ TEST(StyioSyntaxDrift, CorpusMatchesApprovedEnvelope) {
+     cases.push_back(DriftCase{
+       path,
+       {"binding:items", "binding:count"},
+-      {"binding:items"},
++      {"binding:items", "binding:count"},
+       {0, source.find("count")},
+       {},
+       {
+@@ -2172,8 +2172,8 @@ TEST(StyioSyntaxDrift, CorpusMatchesApprovedEnvelope) {
+       },
+       0,
+       21,
+-      true,
+-      "nightly recovery currently keeps the first typed binding but may drop the later member-access binding in this typed list case"});
++      false,
++      ""});
+   }
+ 
+   {
