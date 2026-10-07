@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of repository documentation, generated indexes, archive/rollup lifecycle, templates, and external Styio ecosystem handoff material.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-07
 
 Delivery auto composes worktree and push profiles in one read-only scheduler invocation. Shared successful checks run once; scope-specific hygiene and team-docs checks remain distinct. See [Workflow Orchestration](../../workflows/WORKFLOW-ORCHESTRATION.md#composing-local-profiles) for reuse boundaries.
 
@@ -46,6 +46,8 @@ Key SSOTs:
 4. [../design/Styio-Observable-Language.md](../design/Styio-Observable-Language.md)
 
 ## Daily Workflow
+
+The build guide documents local build identity options and their validation limits. Distinguish locally compiled development variants from released products; downstream explicit-selection admission still requires actual capabilities and contracts.
 
 ### 1. Select the authority and change scope
 

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
-project(styio VERSION 0.0.1 LANGUAGES CXX)
+include("${STYIO_CONTRACT_SOURCE_ROOT}/cmake/StyioBuildIdentity.cmake")
+project(styio VERSION ${STYIO_BUILD_VERSION} LANGUAGES CXX)
 
 # Configure-only contract fixture, not an LLVM or production-build substitute.
 # It evaluates the real src target modules with fixed external inputs, allowing

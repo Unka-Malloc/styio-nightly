@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of the `styio` CLI, diagnostics surface, `styio-nano` profile pruning, and nano package bootstrap contracts.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-07
 
 ## Mission
 
@@ -41,6 +41,8 @@ Key handoff document:
 2. [../external/for-pafio/Styio-Ecosystem-Machine-Contract-Matrix.md](../external/for-pafio/Styio-Ecosystem-Machine-Contract-Matrix.md)
 
 ## Daily Workflow
+
+Build identity is configured by `cmake/StyioBuildIdentity.cmake`: defaults remain `0.0.1` / `nightly`, full executable and CLI contract library share the channel, and Nano retains `nano`. Validate actual machine information and receipt identity; these settings never grant capabilities or release provenance.
 
 1. Determine whether the change affects full `styio`, `styio-nano`, or both.
 2. Keep CLI option changes discoverable through help text and tests.

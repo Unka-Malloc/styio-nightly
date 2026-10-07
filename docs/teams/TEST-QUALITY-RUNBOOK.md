@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of milestone tests, golden files, five-layer pipeline cases, security tests, fuzz smoke, parser shadow gates, and test documentation.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-07
 
 Scheduler regression tests cover composed-profile deduplication, separate scope checks, failure propagation, fresh invocations, and docs-audit evidence context. Run `python3 tests/workflow_scheduler_test.py`; the shell fixture also verifies delivery auto calls the scheduler only once. Local test evidence reuse follows [Post-Commit CI Checks](../specs/POST-COMMIT-CI-CHECKS.md#reusing-local-evidence).
 
@@ -36,6 +36,8 @@ Primary paths:
 9. [../../workflows/TEAM-RUNBOOK-MAINTENANCE-GATE.md](../../workflows/TEAM-RUNBOOK-MAINTENANCE-GATE.md)
 
 ## Daily Workflow
+
+`cmake_target_contract_test.py` preserves the frozen default baseline, exercises custom version/channel propagation and fixed Nano channel, and rejects invalid build identity inputs. Configure-only checks do not replace a genuine compiler build plus downstream execution and fresh receipt validation.
 
 1. Identify the behavior owner before adding an oracle.
 2. Choose the smallest useful test layer: milestone stdout, semantic failure, five-layer, C++ unit, security, fuzz, shadow gate, or soak.

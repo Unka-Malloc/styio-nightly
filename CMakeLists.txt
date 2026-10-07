@@ -14,7 +14,8 @@ set(DOWNLOAD_EXTRACT_TIMESTAMP true)
 include(FetchContent)
 
 # [Styio] Version
-project(styio VERSION 0.0.1)
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/StyioBuildIdentity.cmake")
+project(styio VERSION ${STYIO_BUILD_VERSION})
 include(GNUInstallDirs)
 
 list(APPEND CMAKE_MODULE_PATH
