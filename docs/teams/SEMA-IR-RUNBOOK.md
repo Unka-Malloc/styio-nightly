@@ -2,13 +2,22 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of AST lifecycle, semantic analysis, type inference, StyioIR lowering, string representation, and compilation session ownership.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-08
 
 ## Mission
 
 Own the compiler middle layer from parsed AST to StyioIR and stable textual representation. This team protects AST ownership, type contracts, lowering shape, and reprs used by diagnostics and five-layer goldens. It does not own parser syntax or LLVM emission.
 
 The current performance contract preserves canonical builtin type IDs, merges pass-applicability facts into verified IR traversal, skips inapplicable rewrites, and shares one narrow scalar-only resource-topology no-op proof between Sema and lowering. A complete non-deferred `SGMainEntry` pass boundary may certify that exact tree for codegen so LLVM emission does not repeat the same full traversal; hand-built, deferred, or newly reprocessed IR remains untrusted and fail-closed.
+
+Float constant folding preserves the computed `f64` value with classic-locale,
+round-trip-safe literal text. Subnormal results remain arithmetic operations
+because the LLVM emission path reparses literals with `std::stod`; division
+speculation and zero-divisor handling stay unchanged. For the CF-CORRECTNESS / W1
+precision repair, run `StyioLoweringInternal.FloatConstantFolding*`,
+`StyioLoweringInternal.DefaultPipelinePreservesSmallFloatAndOptLevelBoundary`,
+and `StyioDiagnostics.FoldedFloatArithmeticPreservesRuntimeComparisons`.
+Helper-only checks do not replace production-target or compiler execution.
 
 ## Owned Surface
 
@@ -188,3 +197,4 @@ Record unfinished middle-layer work with:
 5. Whether Codegen has already been adapted.
 6. Any future unsupported-lowering handler or placeholder-retirement follow-up, including the owning negative matrix and whether Codegen has already been adapted.
 7. For observable changes: contract/schema and capability scope, static snapshot/site identity, completeness, independent consumer fixture, disabled-path evidence, and the CLI/runtime/IDE reviewer affected. Record unsupported producer coverage in the gap ledger, not as a new grammar rule.
+

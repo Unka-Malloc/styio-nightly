@@ -14463,3 +14463,36 @@ TEST(StyioSamples, ListPredefinedOperations) {
 
   fs::remove(input);
 }
+
+
+TEST(StyioDiagnostics, FoldedFloatArithmeticPreservesRuntimeComparisons) {
+  const auto now = std::chrono::system_clock::now().time_since_epoch();
+  const auto uniq = std::chrono::duration_cast<std::chrono::microseconds>(now).count();
+  const fs::path input = fs::temp_directory_path()
+    / ("styio-float-fold-precision-" + std::to_string(uniq) + ".styio");
+  {
+    std::ofstream out(input);
+    ASSERT_TRUE(out.is_open());
+    out << "x = 0.0000001 + 0.0000001\n";
+    out << ">_(x == 0.0000002)\n";
+    out << "y = 1.0000001 - 1.0\n";
+    out << ">_(y > 0.0)\n";
+    out << "z = 1.2345678901234567 * 1.0\n";
+    out << ">_(z == 1.2345678901234567)\n";
+  }
+  const char* runner = std::getenv("STYIO_COMPILER_EXE");
+  if (runner == nullptr || runner[0] == '\0') runner = STYIO_COMPILER_EXE;
+  ASSERT_TRUE(runner != nullptr && runner[0] != '\0');
+  const std::string cmd =
+#ifdef _WIN32
+    windows_popen_command_latest(
+      runner, "--parser-engine=nightly --file " + windows_cmd_quote_latest(input.string()));
+#else
+    shell_quote_latest(runner) + " --parser-engine=nightly --file "
+    + shell_quote_latest(input.string()) + " 2>&1";
+#endif
+  const CommandResult result = run_stdout_command(cmd);
+  EXPECT_EQ(result.exit_code, 0) << result.stdout_text;
+  EXPECT_EQ(result.stdout_text, "true\ntrue\ntrue\n");
+  fs::remove(input);
+}
