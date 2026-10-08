@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of milestone tests, golden files, five-layer pipeline cases, security tests, fuzz smoke, parser shadow gates, and test documentation.
 
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-08
 
 Scheduler regression tests cover composed-profile deduplication, separate scope checks, failure propagation, fresh invocations, and docs-audit evidence context. Run `python3 tests/workflow_scheduler_test.py`; the shell fixture also verifies delivery auto calls the scheduler only once. Local test evidence reuse follows [Post-Commit CI Checks](../specs/POST-COMMIT-CI-CHECKS.md#reusing-local-evidence).
 
@@ -36,6 +36,8 @@ Primary paths:
 9. [../../workflows/TEAM-RUNBOOK-MAINTENANCE-GATE.md](../../workflows/TEAM-RUNBOOK-MAINTENANCE-GATE.md)
 
 ## Daily Workflow
+
+macOS CI selects `(styio_pipeline|algorithm_equivalence|resource_topology)` once with CTest, using the same build and environment. Preserve the unanchored label union so future unique members remain covered. `macos_ci_test_selection_test.py` verifies workflow wiring, exact original-selector union, unchanged commands/properties, and no duplicate selection using real CTest JSON inventories. Selection coverage is not an execution result: report platform-skipped tests separately from passes.
 
 `cmake_target_contract_test.py` preserves the frozen default baseline, exercises custom version/channel propagation and fixed Nano channel, and rejects invalid build identity inputs. Configure-only checks do not replace a genuine compiler build plus downstream execution and fresh receipt validation.
 
