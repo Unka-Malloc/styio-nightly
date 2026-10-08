@@ -21,4 +21,3 @@
 | `PERF-STABILITY-RUNBOOK.md` | [Performance / Stability Runbook](./PERF-STABILITY-RUNBOOK.md) | Provide the daily-work entrypoint for maintainers of benchmark routes, soak tests, performance reports, regression templates, and stability guardrails. |
 | `SEMA-IR-RUNBOOK.md` | [Sema / IR Runbook](./SEMA-IR-RUNBOOK.md) | Provide the daily-work entrypoint for maintainers of AST lifecycle, semantic analysis, type inference, StyioIR lowering, string representation, and compilation session ownership. |
 | `TEST-QUALITY-RUNBOOK.md` | [Test Quality Runbook](./TEST-QUALITY-RUNBOOK.md) | Provide the daily-work entrypoint for maintainers of milestone tests, golden files, five-layer pipeline cases, security tests, fuzz smoke, parser shadow gates, and test documentation. |
-

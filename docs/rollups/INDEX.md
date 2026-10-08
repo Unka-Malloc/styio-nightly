@@ -28,4 +28,3 @@
 | `MIGRATION-LEDGER.md` | [Migration Ledger](./MIGRATION-LEDGER.md) | Track every active historical-compatibility migration so the project can reduce historical burden checkpoint by checkpoint without losing visibility on the still-open seams. Each row has an explicit completion signal so the seam can be retired the day its closure conditions are met. |
 | `NEXT-STAGE-GAP-LEDGER.md` | [Next-Stage Gap Ledger](./NEXT-STAGE-GAP-LEDGER.md) | Provide the active, evidence-based phase summary for repository-wide unfinished work so maintainers can split the next stage into checkpoint-sized, multi-team deliveries without creating parallel truths. |
 | `OBSERVABLE-DELIVERY-FOLLOW-UPS.md` | [Observable Graph Delivery Follow-Ups](./OBSERVABLE-DELIVERY-FOLLOW-UPS.md) | Record unapproved follow-ups from the Styio/Pafio/Vityo observable-graph delivery so later agents can resume from one rollup instead of chat history. Nothing in this file is authorized work. |
-
