@@ -250,9 +250,8 @@ jobs:
         run: |
           ctest --test-dir build/macos-ci -L docs --output-on-failure --no-tests=error
           ctest --test-dir build/macos-ci -L security --output-on-failure --no-tests=error
-          ctest --test-dir build/macos-ci -L styio_pipeline --output-on-failure --no-tests=error
-          ctest --test-dir build/macos-ci -L resource_topology --output-on-failure --no-tests=error
-          ctest --test-dir build/macos-ci -L algorithm_equivalence --output-on-failure --no-tests=error
+          # Select the original label union once, including future non-pipeline members.
+          ctest --test-dir build/macos-ci -L '(styio_pipeline|algorithm_equivalence|resource_topology)' --output-on-failure --no-tests=error
           ctest --test-dir build/macos-ci -L ide --output-on-failure --no-tests=error
           ctest --test-dir build/macos-ci -R '^styio_lspd_stdio_framing$' --output-on-failure --no-tests=error
           ctest --test-dir build/macos-ci -R '^scalar_expressions_t01_int_arith$|^functions_t01_simple_func$' --output-on-failure --no-tests=error

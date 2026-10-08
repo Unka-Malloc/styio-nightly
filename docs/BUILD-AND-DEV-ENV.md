@@ -97,6 +97,34 @@ ctest --test-dir build/macos -L ide --output-on-failure --no-tests=error
 
 Set `STYIO_ENABLE_TREE_SITTER=OFF` for an offline compiler/LSP build that uses the repository-local edit-time syntax backend. Native `@extern(c)` and `@extern(c++)` blocks produce `.dylib` modules on macOS. Compiler discovery checks the explicit `STYIO_NATIVE_CC` / `STYIO_NATIVE_CXX` and `STYIO_NATIVE_TOOLCHAIN_ROOT` settings before falling back to the configured or system compiler.
 
+## Local Build Identity
+
+The default compiler identity remains version `0.0.1`, full channel `nightly`,
+and Nano channel `nano`. To build a local full compiler with an explicit identity:
+
+```bash
+cmake -S . -B build/local-identity \
+  -DSTYIO_BUILD_VERSION=0.2.0 \
+  -DSTYIO_FULL_RELEASE_CHANNEL=local-validation
+cmake --build build/local-identity --target styio --parallel
+build/local-identity/bin/styio --machine-info=json
+```
+
+Supply the same platform/compiler/dependency options as the recipes above.
+`STYIO_BUILD_VERSION` requires numeric `major.minor.patch` without leading zeros (each component at most 65535);
+`STYIO_FULL_RELEASE_CHANNEL` accepts letters, digits, dots, underscores and hyphens,
+starting with a letter or digit. Empty values and CMake/C++ string delimiters
+are rejected at configure time. Version applies to both binaries; the full
+channel also applies to its CLI contract library, while Nano keeps `nano`.
+Machine information, syntax diagnostics and compilation receipts use these build
+identities. These settings do not alter capabilities or protocol support.
+
+A locally chosen identity does not establish a released product, a published
+support-matrix match, a signature, or trusted provenance. Record the source Git
+revision and changes, configure options, and actual execution results when using
+such a build for compatibility validation. Use explicit compiler selection in
+consumers; do not represent a development build as a verified release.
+
 ## Native Windows Build
 
 Styio supports native Windows configure, build, and CTest runs without WSL, Cygwin, MSYS, or Git Bash as a runtime/test requirement. Install:

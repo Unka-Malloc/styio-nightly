@@ -19,7 +19,7 @@ FIXTURE = ROOT / "tests/cmake/target_contract"
 GOLDEN = FIXTURE / "baseline.json"
 
 
-def capture(cmake, root, directory, nano, tree, size, pipeline, msvc):
+def capture(cmake, root, directory, nano, tree, size, pipeline, msvc, identity=()):
     cmd = [cmake, "-S", str(FIXTURE), "-B", str(directory),
            f"-DSTYIO_CONTRACT_SOURCE_ROOT={root}",
            f"-DSTYIO_BUILD_NANO={'ON' if nano else 'OFF'}",
@@ -27,6 +27,7 @@ def capture(cmake, root, directory, nano, tree, size, pipeline, msvc):
            f"-DSTYIO_NANO_OPTIMIZE_FOR_SIZE={'ON' if size else 'OFF'}",
            f"-DSTYIO_NANO_INCLUDE_PIPELINE_CHECK={'ON' if pipeline else 'OFF'}",
            f"-DSTYIO_CONTRACT_MSVC={'ON' if msvc else 'OFF'}"]
+    cmd.extend(identity)
     proc = subprocess.run(cmd, text=True, capture_output=True)
     if proc.returncode:
         raise RuntimeError(f"{' '.join(cmd)}\n{proc.stdout}\n{proc.stderr}")
@@ -86,6 +87,32 @@ def main():
                 raise AssertionError(f"Target contract changed for {settings}:\n" +
                                      "\n".join(map(str, differences)))
             count += 1
+        settings = (True, True, True, True, False)
+        actual = capture(args.cmake, ROOT, Path(temp) / "custom", *settings,
+                         identity=("-DSTYIO_BUILD_VERSION=0.2.0",
+                                   "-DSTYIO_FULL_RELEASE_CHANNEL=local-validation"))
+        wanted = expected(baseline, *settings)
+        for target in ("styio", "styio_cli_contract_core", "styio_nano"):
+            definitions = wanted[target]["COMPILE_DEFINITIONS"]
+            definitions[definitions.index('STYIO_PROJECT_VERSION="0.0.1"')] = 'STYIO_PROJECT_VERSION="0.2.0"'
+            if target != "styio_nano":
+                definitions[definitions.index('STYIO_RELEASE_CHANNEL="nightly"')] = 'STYIO_RELEASE_CHANNEL="local-validation"'
+        assert actual == wanted, "Custom build identity changed unrelated target properties"
+        invalid = {
+            "STYIO_BUILD_VERSION": ("", "0.2", "0.2.0-dev", "01.2.0", "65536.0.0", "99999999999999999999.0.0", "0.2.0;injected", '0.2.0"'),
+            "STYIO_FULL_RELEASE_CHANNEL": ("", "local validation", "local;injected", 'local"', "local\\path", "local/channel"),
+        }
+        for key, values in invalid.items():
+            for index, value in enumerate(values):
+                try:
+                    capture(args.cmake, ROOT, Path(temp) / f"invalid-{key}-{index}",
+                            *settings, identity=(f"-D{key}={value}",))
+                except RuntimeError as error:
+                    assert (f"{key} must" in str(error) or
+                            f"{key} components must" in str(error)), str(error)
+                else:
+                    raise AssertionError(f"Invalid {key} accepted: {value!r}")
+    print("Custom identity propagation, fixed Nano channel, and invalid identity rejection passed")
     print(f"CMake target contract passed: {count} configurations; source order, links, settings and nano alias unchanged")
     return 0
 

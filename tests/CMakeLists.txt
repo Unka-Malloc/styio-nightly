@@ -16,6 +16,14 @@ add_test(
 )
 set_tests_properties(cmake_target_contract PROPERTIES LABELS "workflow;cmake")
 
+add_test(
+  NAME macos_ci_test_selection
+  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_LIST_DIR}/macos_ci_test_selection_test.py"
+          --cmake "${CMAKE_COMMAND}" --ctest "${CMAKE_CTEST_COMMAND}"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
+set_tests_properties(macos_ci_test_selection PROPERTIES LABELS "docs;workflow;cmake")
+
 
 add_test(
   NAME docs_audit

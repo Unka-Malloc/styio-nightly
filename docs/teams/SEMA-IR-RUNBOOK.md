@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of AST lifecycle, semantic analysis, type inference, StyioIR lowering, string representation, and compilation session ownership.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-07
 
 ## Mission
 
@@ -42,6 +42,8 @@ observable boundary. Team ownership does not move query services into Sema or
 make compiler layers depend on an IDE.
 
 ## Daily Workflow
+
+The CLI contract target must receive the same configured build version and full channel as the executable so syntax diagnostic producer identity cannot diverge. Build identity options do not change semantic or Observable contracts.
 
 1. Start from the language or capability SSOT for the feature.
 2. Identify the AST node, type-inference rule, lowering rule, and IR node together before editing.

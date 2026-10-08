@@ -2,7 +2,7 @@ add_executable(styio main.cpp)
 styio_configure_binary_target(styio)
 target_compile_definitions(styio PRIVATE
   "STYIO_PROJECT_VERSION=\"${PROJECT_VERSION}\""
-  "STYIO_RELEASE_CHANNEL=\"nightly\""
+  "STYIO_RELEASE_CHANNEL=\"${STYIO_FULL_RELEASE_CHANNEL}\""
   "STYIO_EDITION_MAX=\"2026\""
   "STYIO_LLVM_DIR=\"${STYIO_DEFINE_LLVM_DIR}\""
   "STYIO_SOURCE_DIR=\"${STYIO_DEFINE_SOURCE_DIR}\""
