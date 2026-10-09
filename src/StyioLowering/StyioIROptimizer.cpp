@@ -6,10 +6,15 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <iomanip>
+#include <limits>
+#include <locale>
 #include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -966,15 +971,29 @@ static StyioIR* try_constant_fold_float(SGBinOp* node) {
     return nullptr;
   }
 
+  double result = 0.0;
   switch (node->operand) {
-    case StyioOpType::Binary_Add: return SGConstFloat::Create(std::to_string(l + r));
-    case StyioOpType::Binary_Sub: return SGConstFloat::Create(std::to_string(l - r));
-    case StyioOpType::Binary_Mul: return SGConstFloat::Create(std::to_string(l * r));
+    case StyioOpType::Binary_Add: result = l + r; break;
+    case StyioOpType::Binary_Sub: result = l - r; break;
+    case StyioOpType::Binary_Mul: result = l * r; break;
     case StyioOpType::Binary_Div:
       if (r == 0.0) return nullptr;
-      return SGConstFloat::Create(std::to_string(l / r));
+      result = l / r;
+      break;
     default: return nullptr;
   }
+
+  // Codegen reparses this text with std::stod, which may reject subnormal
+  // literals with ERANGE. Leave those operations for runtime evaluation.
+  if (std::fpclassify(result) == FP_SUBNORMAL) return nullptr;
+
+  // This is an f64 value, not display text: six-decimal std::to_string
+  // formatting can change the program (including rounding small values to 0).
+  std::ostringstream literal;
+  literal.imbue(std::locale::classic());
+  literal << std::setprecision(std::numeric_limits<double>::max_digits10)
+          << result;
+  return SGConstFloat::Create(literal.str());
 }
 
 /// Constant-fold bool operations.
@@ -1565,3 +1584,4 @@ optimize_styio_ir(StyioIR* root) {
 
 
 }  // namespace styio::lowering
+

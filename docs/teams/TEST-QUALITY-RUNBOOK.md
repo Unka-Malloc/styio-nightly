@@ -2,11 +2,18 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of milestone tests, golden files, five-layer pipeline cases, security tests, fuzz smoke, parser shadow gates, and test documentation.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-08
 
 Scheduler regression tests cover composed-profile deduplication, separate scope checks, failure propagation, fresh invocations, and docs-audit evidence context. Run `python3 tests/workflow_scheduler_test.py`; the shell fixture also verifies delivery auto calls the scheduler only once. Local test evidence reuse follows [Post-Commit CI Checks](../specs/POST-COMMIT-CI-CHECKS.md#reusing-local-evidence).
 
 Run `python3 tests/verification_report_test.py` for automatic tracked-file discovery, compilation membership versus observed objects, unknown routes, runtime fixtures, missing evidence, and report-only failure handling. CI inventory/report generation never reruns compiler or behavior tests; existing lane outcomes remain the evidence.
+
+The CF-CORRECTNESS / W1 float-fold precision regression pairs direct IR checks
+with real nightly compiler execution. Compare exact finite values, retain the
+sign of zero, check nonfinite classification, and keep subnormal results as
+runtime operations. Include the opt-level 0/1 boundary and classic-locale output;
+do not treat a source-helper harness as a full compiler pass. Focused test names
+are recorded in the [Sema / IR runbook](./SEMA-IR-RUNBOOK.md).
 
 ## Mission
 
@@ -214,3 +221,4 @@ The cross-platform source-read check explicitly rejects directories (including
 symlink targets) before opening: some platforms report directory reads as EOF.
 Regular-file symlinks remain accepted; status-query errors still use the existing
 open/read error handling. The public CLI regression covers both symlink cases.
+

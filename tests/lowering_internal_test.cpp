@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <cstdint>
+#include <limits>
+#include <locale>
 #include <functional>
 #include <memory>
 #include <string>
@@ -3361,3 +3364,82 @@ TEST(StyioLoweringInternal, ObservationDescriptorsPreserveSnapshotAndSiteIds) {
 }
 
 }  // namespace
+
+
+TEST(StyioLoweringInternal, FloatConstantFoldingPreservesF64Values) {
+  using styio::lowering::try_constant_fold_float;
+  const auto f64 = styio_data_type_from_name("f64");
+  const auto fold = [&](const std::string& lhs, const std::string& rhs, StyioOpType op) {
+    std::unique_ptr<SGBinOp> node(SGBinOp::Create(
+      SGConstFloat::Create(lhs), SGConstFloat::Create(rhs), op,
+      SGType::Create(f64), f64, f64));
+    return std::unique_ptr<StyioIR>(try_constant_fold_float(node.get()));
+  };
+  const auto expect_value = [&](const std::string& lhs, const std::string& rhs,
+                                StyioOpType op, double expected) {
+    auto result = fold(lhs, rhs, op);
+    auto* literal = dynamic_cast<SGConstFloat*>(result.get());
+    ASSERT_NE(literal, nullptr);
+    const double actual = std::stod(literal->value);
+    EXPECT_EQ(actual, expected) << literal->value;
+    if (expected == 0.0) EXPECT_EQ(std::signbit(actual), std::signbit(expected));
+  };
+  expect_value("0.0000001", "0.0000001", StyioOpType::Binary_Add,
+               0.0000001 + 0.0000001);
+  expect_value("1.0000001", "1.0", StyioOpType::Binary_Sub, 1.0000001 - 1.0);
+  expect_value("1.2345678901234567", "1.0", StyioOpType::Binary_Mul,
+               1.2345678901234567);
+  expect_value("1.0", "3.0", StyioOpType::Binary_Div, 1.0 / 3.0);
+  expect_value("-0.0", "2.0", StyioOpType::Binary_Mul, -0.0);
+  expect_value("1e308", "2.0", StyioOpType::Binary_Mul,
+               std::numeric_limits<double>::infinity());
+  auto nan = fold("inf", "inf", StyioOpType::Binary_Sub);
+  auto* nan_literal = dynamic_cast<SGConstFloat*>(nan.get());
+  ASSERT_NE(nan_literal, nullptr);
+  EXPECT_TRUE(std::isnan(std::stod(nan_literal->value)));
+  EXPECT_EQ(fold("1e-200", "1e-110", StyioOpType::Binary_Mul), nullptr);
+  EXPECT_EQ(fold("1.0", "0.0", StyioOpType::Binary_Div), nullptr);
+  EXPECT_EQ(fold("1.0", "-0.0", StyioOpType::Binary_Div), nullptr);
+}
+
+TEST(StyioLoweringInternal, FloatConstantFoldingUsesClassicLocale) {
+  struct CommaDecimal : std::numpunct<char> {
+    char do_decimal_point() const override { return ','; }
+  };
+  struct RestoreLocale {
+    std::locale original = std::locale();
+    ~RestoreLocale() { std::locale::global(original); }
+  } restore;
+  std::locale::global(std::locale(std::locale::classic(), new CommaDecimal));
+  const auto f64 = styio_data_type_from_name("f64");
+  std::unique_ptr<SGBinOp> node(SGBinOp::Create(
+    SGConstFloat::Create("1.25"), SGConstFloat::Create("0.25"),
+    StyioOpType::Binary_Add, SGType::Create(f64), f64, f64));
+  std::unique_ptr<StyioIR> result(styio::lowering::try_constant_fold_float(node.get()));
+  auto* literal = dynamic_cast<SGConstFloat*>(result.get());
+  ASSERT_NE(literal, nullptr);
+  EXPECT_EQ(literal->value, "1.5");
+}
+
+TEST(StyioLoweringInternal, DefaultPipelinePreservesSmallFloatAndOptLevelBoundary) {
+  const auto f64 = styio_data_type_from_name("f64");
+  for (unsigned level : {0u, 1u}) {
+    std::unique_ptr<SGMainEntry> root(SGMainEntry::Create({
+      SGBinOp::Create(SGConstFloat::Create("0.0000001"),
+                      SGConstFloat::Create("0.0000001"),
+                      StyioOpType::Binary_Add, SGType::Create(f64), f64, f64)
+    }));
+    styio::lowering::StyioIRPassPipelineOptions options;
+    options.opt_level = level;
+    const auto result = styio::lowering::run_default_styio_ir_pass_pipeline(root.get(), options);
+    ASSERT_TRUE(result.ok());
+    ASSERT_EQ(root->stmts.size(), 1u);
+    if (level == 0) {
+      EXPECT_NE(dynamic_cast<SGBinOp*>(root->stmts[0]), nullptr);
+    } else {
+      auto* literal = dynamic_cast<SGConstFloat*>(root->stmts[0]);
+      ASSERT_NE(literal, nullptr);
+      EXPECT_EQ(std::stod(literal->value), 0.0000001 + 0.0000001);
+    }
+  }
+}

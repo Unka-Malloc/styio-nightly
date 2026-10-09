@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the active, evidence-based phase summary for repository-wide unfinished work so maintainers can split the next stage into checkpoint-sized, multi-team deliveries without creating parallel truths.
 
-**Last updated:** 2026-10-01
+**Last updated:** 2026-10-08
 
 **Status:** Active collaboration ledger. This file distinguishes:
 
@@ -172,7 +172,7 @@ Stage boundaries remain strict: S1 publishes static compiler-owned facts; S2 add
 | CF-CALLABLE-Q3 | Deferred callable decisions Q3.1–Q3.3: nested contract origin, static rank-2 representation, and shallow pure subsumption | Remains `deferred/not_started` until the language owner answers the queued batch; recommendations are not authority | Sema / Type System |
 | CF-CALLABLE-Q6 | Deferred callable decisions Q6.1–Q6.3: concrete instance heads, ownership/coherence, and static interface evidence | Remains `deferred/not_started` until nominal ownership prerequisites converge and the language owner answers the queued batch | Sema / Modules |
 | CF-COVERAGE | Verify current required-lane source coverage | The acceptance floor remains 95% in the release-conformance inventory. A historical callable-batch measurement was below that floor; it does not establish the current revision's percentage. Run the current gate and retain its artifact/revision before claiming closure. | Test Quality, [IM-D6](./IM-D6-RELEASE-CONFORMANCE-INVENTORY.md) |
-| CF-CORRECTNESS | Select the next compiler-correctness cluster after the completed loop-control closure | Compare remaining explicit feature-debt families, select exactly one smallest independent cluster, freeze semantics, and require final focused acceptance | W1 plus affected owner |
+| CF-CORRECTNESS | Selected bounded repair: preserve `f64` constant-fold results instead of rounding them through six-decimal display formatting | Implementation and regression tests prepared; exact-candidate production CI remains required. Existing scalar syntax and arithmetic semantics are unchanged. Focused coverage is `FloatConstantFolding*`, `DefaultPipelinePreservesSmallFloatAndOptLevelBoundary`, and `FoldedFloatArithmeticPreservesRuntimeComparisons`; no legacy Better Plan record is reopened or hand-edited. | W1 / Sema-IR + Test Quality |
 
 ## 9. Rules for Scalable Team Execution
 
@@ -189,3 +189,4 @@ Stage boundaries remain strict: S1 publishes static compiler-owned facts; S2 add
 2. The deepest unfinished work is concentrated in compiler completion debt: parser subset gaps, the explicit Sema/type/lowering debt families, stream/runtime combinations, and unsupported topology capabilities.
 3. Package-manager expectations must stay split cleanly: `styio` now owns the compiler-side compile-plan contract baseline and its compatibility maintenance, but not a full package-manager product surface.
 4. IDE next-stage work should prioritize operational closure over feature count: retain drain and identity guarantees while extending methods.
+

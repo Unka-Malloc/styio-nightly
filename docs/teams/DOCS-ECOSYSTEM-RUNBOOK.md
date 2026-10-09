@@ -2,7 +2,7 @@
 
 **Purpose:** Provide the daily-work entrypoint for maintainers of repository documentation, generated indexes, archive/rollup lifecycle, templates, and external Styio ecosystem handoff material.
 
-**Last updated:** 2026-10-06
+**Last updated:** 2026-10-08
 
 Delivery auto composes worktree and push profiles in one read-only scheduler invocation. Shared successful checks run once; scope-specific hygiene and team-docs checks remain distinct. See [Workflow Orchestration](../../workflows/WORKFLOW-ORCHESTRATION.md#composing-local-profiles) for reuse boundaries.
 
@@ -17,6 +17,11 @@ workflow entrypoints, and cross-repository handoffs. Language features, public
 interfaces, tests, and repository roles retain their own authoritative documents.
 Use this runbook to find the owner and verification path for a documentation
 change.
+
+For the selected CF-CORRECTNESS / W1 float-fold repair, keep the gap ledger
+linked to focused production tests and exact-candidate CI. Do not reopen
+completed Better Plan deliveries or hand-edit their generated state to give a
+new correctness repair a historical task identity.
 
 ## Owned Surface
 
@@ -251,3 +256,4 @@ The cross-platform source-read check explicitly rejects directories (including
 symlink targets) before opening: some platforms report directory reads as EOF.
 Regular-file symlinks remain accepted; status-query errors still use the existing
 open/read error handling. The public CLI regression covers both symlink cases.
+
